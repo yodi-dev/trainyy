@@ -59,7 +59,11 @@ const emit = defineEmits([
 const { themes, currentTheme, applyTheme } = useTheme()
 
 // AI Key State
-const apiKeyInput = ref(localStorage.getItem('trainyy_gemini_api_key') || '')
+const apiKeyInput = ref(
+  localStorage.getItem('trainyy_gemini_api_key') ||
+  import.meta.env.VITE_GEMINI_API_KEY ||
+  ''
+)
 const showApiKey = ref(false)
 const showAiGuide = ref(false)
 const apiKeySavedMessage = ref('')
@@ -294,7 +298,7 @@ const updateQuizMode = (mode) => {
           <ChevronDown v-else class="w-4 h-4 text-app-dim" />
         </button>
 
-        <div v-if="showAiGuide || !hasActiveKey" class="space-y-2.5 pt-1 border-t border-app-border/60 animate-slide-up">
+        <div v-if="showAiGuide" class="space-y-2.5 pt-1 border-t border-app-border/60 animate-slide-up">
           <p class="text-[11px] text-app-dim leading-relaxed">
             Kunci ini gratis selamanya dari Google untuk akun masing-masing. Cukup salin dari situs resmi
             <a

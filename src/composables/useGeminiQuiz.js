@@ -70,40 +70,53 @@ KEMBALIKAN HANYA ARRAY JSON DENGAN STRUKTUR BERIKUT:
   }
 ]`
 
-      const model = 'gemini-1.5-flash'
-      const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`
+      const candidateModels = [
+        'gemini-3.5-flash',
+        'gemini-3.5-flash-lite',
+        'gemini-flash-latest',
+        'gemini-1.5-flash'
+      ]
 
-      const payload = {
-        contents: [
-          {
-            parts: [{ text: prompt }]
+      let lastError = null
+      let rawText = null
+
+      for (const model of candidateModels) {
+        try {
+          const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`
+          const payload = {
+            contents: [
+              {
+                parts: [{ text: prompt }]
+              }
+            ],
+            generationConfig: {
+              response_mime_type: 'application/json',
+              temperature: 0.3
+            }
           }
-        ],
-        generationConfig: {
-          response_mime_type: 'application/json',
-          temperature: 0.3
+
+          const res = await fetch(url, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+          })
+
+          if (res.ok) {
+            const data = await res.json()
+            rawText = data.candidates?.[0]?.content?.parts?.[0]?.text
+            if (rawText) break
+          } else {
+            const errJson = await res.json().catch(() => ({}))
+            lastError = errJson.error?.message || `HTTP ${res.status}`
+            console.warn(`Model ${model} gagal, mencoba model berikutnya:`, lastError)
+          }
+        } catch (fetchErr) {
+          lastError = fetchErr.message
         }
       }
 
-      const res = await fetch(url, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
-      })
-
-      if (!res.ok) {
-        const errJson = await res.json().catch(() => ({}))
-        const errMsg =
-          errJson.error?.message || `Koneksi ke AI bermasalah (Status ${res.status}). Coba periksa koneksi internet.`
-        throw new Error(errMsg)
-      }
-
-      generateProgress.value = 'Merapikan format pertanyaan kuis...'
-      const data = await res.json()
-      const rawText = data.candidates?.[0]?.content?.parts?.[0]?.text
-
       if (!rawText) {
-        throw new Error('AI belum dapat menyusun soal dari materi ini. Coba periksa teks materi.')
+        throw new Error(lastError || 'AI belum dapat menyusun soal dari materi ini. Coba periksa teks materi.')
       }
 
       let parsedQuestions = []
