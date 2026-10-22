@@ -47,14 +47,14 @@ const tabs = [
         <!-- Active Pill Background Indicator -->
         <div
           v-if="currentTab === tab.id"
-          class="absolute -top-1.5 w-8 h-1 rounded-full bg-gradient-to-r from-indigo-500 to-violet-500 shadow-sm shadow-indigo-500/50"
+          class="absolute -top-1.5 w-8 h-1 rounded-full bg-theme-gradient shadow-sm shadow-theme-glow"
         ></div>
 
         <div class="relative">
           <component
             :is="tab.icon"
             class="w-5 h-5 transition-transform duration-200"
-            :class="{ 'scale-110 text-indigo-400': currentTab === tab.id }"
+            :class="{ 'scale-110 text-theme-light': currentTab === tab.id }"
           />
 
           <!-- Remedial Badge Counter -->

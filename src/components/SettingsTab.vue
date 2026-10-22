@@ -1,23 +1,23 @@
 <script setup>
-import { ref, computed } from 'vue'
+import { ref } from 'vue'
 import { 
   Settings, 
-  Key, 
   Cloud, 
   FileSpreadsheet, 
+  Sparkles, 
   Palette, 
-  Download, 
-  Upload, 
-  LogOut, 
+  Key, 
   ExternalLink, 
   Check, 
-  Eye, 
-  EyeOff, 
-  Sparkles,
-  Info,
+  Info, 
+  Download, 
+  Upload, 
+  HelpCircle,
+  Eye,
+  EyeOff,
+  LogOut,
   ChevronDown,
-  ChevronUp,
-  HelpCircle
+  Loader2
 } from '@lucide/vue'
 import { useTheme } from '../composables/useTheme'
 
@@ -66,27 +66,38 @@ const apiKeyInput = ref(
   import.meta.env.VITE_GEMINI_API_KEY ||
   ''
 )
-const showApiKey = ref(false)
+const showKey = ref(false)
+const keySaved = ref(false)
 const showAiGuide = ref(false)
-const apiKeySavedMessage = ref('')
 
-const hasActiveKey = computed(() => {
-  return !!(apiKeyInput.value.trim() || import.meta.env.VITE_GEMINI_API_KEY)
-})
+const hasActiveKey = ref(
+  !!(
+    localStorage.getItem('trainyy_gemini_api_key') ||
+    import.meta.env.VITE_GEMINI_API_KEY
+  )
+)
 
 const saveApiKey = () => {
-  localStorage.setItem('trainyy_gemini_api_key', apiKeyInput.value.trim())
-  apiKeySavedMessage.value = 'Kunci AI berhasil disimpan!'
-  setTimeout(() => {
-    apiKeySavedMessage.value = ''
-  }, 3000)
+  if (apiKeyInput.value.trim()) {
+    localStorage.setItem('trainyy_gemini_api_key', apiKeyInput.value.trim())
+    hasActiveKey.value = true
+    keySaved.value = true
+    setTimeout(() => {
+      keySaved.value = false
+      showAiGuide.value = false
+    }, 1800)
+  } else {
+    localStorage.removeItem('trainyy_gemini_api_key')
+    hasActiveKey.value = false
+  }
 }
 
-// Quiz Mode Preference
-const defaultQuizMode = ref(localStorage.getItem('trainyy_quiz_mode') || 'study')
+// Mode Kuis Default
+const defaultQuizMode = ref(localStorage.getItem('trainyy_default_mode') || 'study')
+
 const updateQuizMode = (mode) => {
   defaultQuizMode.value = mode
-  localStorage.setItem('trainyy_quiz_mode', mode)
+  localStorage.setItem('trainyy_default_mode', mode)
 }
 </script>
 
@@ -95,7 +106,7 @@ const updateQuizMode = (mode) => {
     <!-- Header -->
     <div class="pt-2">
       <h1 class="text-xl font-bold text-white flex items-center gap-2">
-        <Settings class="w-5 h-5 text-indigo-400" />
+        <Settings class="w-5 h-5 text-theme-light" />
         <span>Pengaturan</span>
       </h1>
       <p class="text-xs text-app-muted mt-0.5">
@@ -106,9 +117,9 @@ const updateQuizMode = (mode) => {
     <!-- Status Message Banner -->
     <div
       v-if="statusMessage"
-      class="p-3 rounded-xl bg-indigo-500/10 border border-indigo-500/30 text-indigo-200 text-xs flex items-center gap-2"
+      class="p-3 rounded-xl bg-theme-soft border border-theme-border text-white text-xs flex items-center gap-2"
     >
-      <Info class="w-4 h-4 text-indigo-400 shrink-0" />
+      <Info class="w-4 h-4 text-theme-light shrink-0" />
       <span>{{ statusMessage }}</span>
     </div>
 
@@ -118,7 +129,7 @@ const updateQuizMode = (mode) => {
     <div class="bg-app-card border border-app-border rounded-2xl p-4 space-y-3.5">
       <div class="flex items-center justify-between">
         <div class="flex items-center gap-2">
-          <Cloud class="w-5 h-5 text-indigo-400" />
+          <Cloud class="w-5 h-5 text-theme-light" />
           <h2 class="text-sm font-bold text-white">Akun Google & Cadangan Cloud</h2>
         </div>
         <span
@@ -142,12 +153,12 @@ const updateQuizMode = (mode) => {
               :src="userProfile.picture"
               referrerpolicy="no-referrer"
               alt="Foto Profil"
-              class="w-9 h-9 rounded-full border border-indigo-500/40 object-cover shrink-0"
+              class="w-9 h-9 rounded-full border border-theme-border object-cover shrink-0"
               @error="imgError = true"
             />
             <div
               v-else
-              class="w-9 h-9 rounded-full bg-indigo-600 flex items-center justify-center font-bold text-white text-sm shrink-0 border border-indigo-400/40"
+              class="w-9 h-9 rounded-full bg-theme-primary flex items-center justify-center font-bold text-white text-sm shrink-0 border border-theme-border"
             >
               {{ userProfile?.name?.charAt(0) || 'U' }}
             </div>
@@ -207,7 +218,7 @@ const updateQuizMode = (mode) => {
           <button
             @click="emit('backup-drive')"
             :disabled="isLoading"
-            class="py-2 px-3 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-semibold text-xs flex items-center justify-center gap-1.5 active-press cursor-pointer disabled:opacity-50"
+            class="py-2 px-3 rounded-xl bg-theme-primary hover:bg-theme-hover text-white font-semibold text-xs flex items-center justify-center gap-1.5 active-press cursor-pointer disabled:opacity-50"
           >
             <Upload class="w-3.5 h-3.5" />
             <span>Simpan Cadangan</span>
@@ -229,46 +240,58 @@ const updateQuizMode = (mode) => {
          SECTION 2: GOOGLE SHEETS RAPOR BELAJAR
          ============================================== -->
     <div class="bg-app-card border border-app-border rounded-2xl p-4 space-y-3">
-      <div class="flex items-center gap-2">
-        <FileSpreadsheet class="w-5 h-5 text-emerald-400" />
-        <h2 class="text-sm font-bold text-white">Rapor Belajar Otomatis (Spreadsheet)</h2>
+      <div class="flex items-center justify-between">
+        <div class="flex items-center gap-2">
+          <FileSpreadsheet class="w-5 h-5 text-emerald-400" />
+          <h2 class="text-sm font-bold text-white">Rapor Belajar Otomatis (Spreadsheet)</h2>
+        </div>
+        <span
+          v-if="isConnected && linkedSheetId"
+          class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-400 border border-emerald-500/30"
+        >
+          Tersambung Otomatis
+        </span>
       </div>
 
       <p class="text-xs text-app-muted leading-relaxed">
-        Setiap kali kamu menyelesaikan kuis, skor dan catatan belajarmu otomatis dicatat ke Google Spreadsheet pribadi untuk melihat grafik perkembanganmu.
+        Setiap kali kamu menyelesaikan kuis, skor dan catatan belajarmu otomatis dicatat ke Google Spreadsheet pribadi tanpa perlu input manual.
       </p>
 
       <div v-if="isConnected" class="space-y-2.5">
+        <!-- Connected to spreadsheet -->
         <div v-if="linkedSheetId" class="p-3 rounded-xl bg-app-bg border border-app-border flex items-center justify-between text-xs">
           <div>
-            <p class="font-bold text-white">Rapor Belajar Trainyy</p>
-            <p class="text-[10px] text-emerald-400 mt-0.5">Tersambung ke Spreadsheet Google</p>
+            <p class="font-bold text-white">Trainyy - Rekap Analitik Belajar</p>
+            <p class="text-[10px] text-emerald-400 mt-0.5">Tersinkron di Google Drive Anda</p>
           </div>
 
           <a
             :href="`https://docs.google.com/spreadsheets/d/${linkedSheetId}`"
             target="_blank"
             rel="noopener noreferrer"
-            class="flex items-center gap-1 px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-semibold active-press"
+            class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-semibold active-press"
           >
-            <ExternalLink class="w-3 h-3" />
-            <span>Buka Rapor</span>
+            <ExternalLink class="w-3.5 h-3.5" />
+            <span>Buka Spreadsheet</span>
           </a>
         </div>
 
-        <button
-          v-else
-          @click="emit('create-sheet')"
-          :disabled="isLoading"
-          class="w-full py-2.5 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs flex items-center justify-center gap-2 active-press cursor-pointer disabled:opacity-50"
-        >
-          <FileSpreadsheet class="w-4 h-4" />
-          <span>Buat Buku Rapor Otomatis</span>
-        </button>
+        <!-- Setting up / sync button if not yet linked -->
+        <div v-else class="space-y-2">
+          <button
+            @click="emit('create-sheet')"
+            :disabled="isLoading"
+            class="w-full py-2.5 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs flex items-center justify-center gap-2 active-press cursor-pointer disabled:opacity-50"
+          >
+            <Loader2 v-if="isLoading" class="w-4 h-4 animate-spin" />
+            <FileSpreadsheet v-else class="w-4 h-4" />
+            <span>{{ isLoading ? 'Menghubungkan ke Spreadsheet...' : 'Sinkronkan Buku Rapor Sekarang' }}</span>
+          </button>
+        </div>
       </div>
 
       <p v-else class="text-[11px] text-app-dim italic">
-        Masuk dengan akun Google di atas untuk mengaktifkan buku rapor belajar.
+        Masuk dengan akun Google di atas untuk mengaktifkan buku rapor belajar otomatis.
       </p>
     </div>
 
@@ -294,83 +317,101 @@ const updateQuizMode = (mode) => {
       </div>
 
       <p class="text-xs text-app-muted leading-relaxed">
-        Fitur ini membaca materi teks atau PDF Anda dan secara cerdas menyusun 10–30 pertanyaan kuis pilihan ganda beserta kunci dan penjelasannya.
+        Fitur ini membuatkan 10 pertanyaan pilihan ganda secara cerdas dari materi catatan atau file PDF Anda.
       </p>
 
-      <!-- Accordion / Toggle for Key Input -->
-      <div class="border border-app-border rounded-xl p-3 bg-app-bg space-y-2.5 text-xs">
+      <!-- Accordion Toggle untuk Pengaturan Kunci AI -->
+      <div class="pt-1 border-t border-app-border/60">
         <button
           @click="showAiGuide = !showAiGuide"
-          class="w-full flex items-center justify-between text-left font-medium text-white hover:text-indigo-300 transition-colors cursor-pointer"
+          class="w-full flex items-center justify-between text-left font-medium text-white hover:text-theme-light transition-colors cursor-pointer"
         >
-          <span class="flex items-center gap-1.5">
-            <Key class="w-3.5 h-3.5 text-indigo-400" />
-            <span>{{ hasActiveKey ? 'Atur Kunci AI Pribadi (Opsional)' : 'Masukkan Kunci AI Gratis' }}</span>
-          </span>
-          <ChevronUp v-if="showAiGuide" class="w-4 h-4 text-app-dim" />
-          <ChevronDown v-else class="w-4 h-4 text-app-dim" />
+          <div class="flex items-center gap-1.5 text-xs">
+            <Key class="w-3.5 h-3.5 text-theme-light" />
+            <span>{{ hasActiveKey ? 'Ubah Kunci Akses AI' : 'Atur Kunci Akses AI (Gratis)' }}</span>
+          </div>
+          <ChevronDown
+            class="w-4 h-4 text-app-dim transition-transform duration-200"
+            :class="{ 'rotate-180': showAiGuide }"
+          />
         </button>
 
-        <div v-if="showAiGuide" class="space-y-2.5 pt-1 border-t border-app-border/60 animate-slide-up">
-          <p class="text-[11px] text-app-dim leading-relaxed">
-            Kunci ini gratis selamanya dari Google untuk akun masing-masing. Cukup salin dari situs resmi
+        <div v-if="showAiGuide" class="pt-3 space-y-3">
+          <div class="p-3 rounded-xl bg-app-bg border border-app-border space-y-2 text-xs">
+            <p class="text-app-muted leading-relaxed">
+              Kunci AI bisa didapatkan gratis dari Google untuk membuat soal tanpa batasan:
+            </p>
+            <ol class="list-decimal list-inside space-y-1 text-app-muted text-[11px]">
+              <li>Buka situs resmi Google AI Studio.</li>
+              <li>Masuk dengan akun Google Anda.</li>
+              <li>Klik tombol <strong>"Create API key"</strong> lalu salin kodenya ke kotak di bawah.</li>
+            </ol>
             <a
               href="https://aistudio.google.com/app/apikey"
               target="_blank"
               rel="noopener noreferrer"
-              class="text-indigo-400 underline font-medium"
+              class="inline-flex items-center gap-1 text-xs text-theme-light hover:underline font-medium pt-1"
             >
-              Google AI Studio
+              <span>Buka Google AI Studio</span>
+              <ExternalLink class="w-3 h-3" />
             </a>
-            (klik tombol <em>"Create API Key"</em>) lalu tempelkan di bawah:
-          </p>
-
-          <div class="relative">
-            <input
-              v-model="apiKeyInput"
-              :type="showApiKey ? 'text' : 'password'"
-              placeholder="Tempel kunci AI di sini (berawalan AIzaSy...)"
-              class="w-full pl-3 pr-9 py-2 rounded-lg bg-app-card border border-app-border text-white text-xs font-mono placeholder-app-dim focus:outline-hidden focus:border-indigo-500"
-            />
-            <button
-              @click="showApiKey = !showApiKey"
-              class="absolute right-2.5 top-2 text-app-dim hover:text-white cursor-pointer"
-            >
-              <EyeOff v-if="showApiKey" class="w-3.5 h-3.5" />
-              <Eye v-else class="w-3.5 h-3.5" />
-            </button>
           </div>
 
-          <div class="flex items-center justify-between">
-            <span v-if="apiKeySavedMessage" class="text-xs text-emerald-400 font-medium">
-              {{ apiKeySavedMessage }}
-            </span>
-            <span v-else></span>
+          <!-- Input Kunci AI -->
+          <div class="space-y-1.5">
+            <div class="relative">
+              <input
+                v-model="apiKeyInput"
+                :type="showKey ? 'text' : 'password'"
+                placeholder="Tempelkan kunci AI Google di sini..."
+                class="w-full pl-3 pr-9 py-2 rounded-lg bg-app-card border border-app-border text-white text-xs font-mono placeholder-app-dim focus:outline-hidden focus:border-theme-primary"
+              />
+              <button
+                @click="showKey = !showKey"
+                type="button"
+                class="absolute right-2.5 top-2 text-app-dim hover:text-white cursor-pointer"
+              >
+                <EyeOff v-if="showKey" class="w-4 h-4" />
+                <Eye v-else class="w-4 h-4" />
+              </button>
+            </div>
 
-            <button
-              @click="saveApiKey"
-              class="px-3.5 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs active-press cursor-pointer"
-            >
-              Simpan Kunci
-            </button>
+            <div class="flex items-center justify-between pt-1">
+              <span class="text-[10px] text-app-dim">
+                Tersimpan aman di browser perangkat Anda
+              </span>
+              <button
+                @click="saveApiKey"
+                class="px-3.5 py-1.5 rounded-lg bg-theme-primary hover:bg-theme-hover text-white font-bold text-xs active-press cursor-pointer"
+              >
+                <span v-if="keySaved" class="flex items-center gap-1">
+                  <Check class="w-3.5 h-3.5" />
+                  <span>Tersimpan</span>
+                </span>
+                <span v-else>Simpan Kunci</span>
+              </button>
+            </div>
           </div>
         </div>
       </div>
     </div>
 
     <!-- ==============================================
-         SECTION 4: GAYA BELAJAR
+         SECTION 4: MODE LATIHAN KUIS
          ============================================== -->
     <div class="bg-app-card border border-app-border rounded-2xl p-4 space-y-3">
-      <h2 class="text-sm font-bold text-white">Gaya Belajar Kuis</h2>
+      <h2 class="text-sm font-bold text-white">Mode Latihan Kuis Bawaan</h2>
+      <p class="text-xs text-app-muted">
+        Pilih bagaimana kamu ingin kuis berjalan secara default:
+      </p>
 
-      <div class="grid grid-cols-2 gap-2 text-xs">
+      <div class="grid grid-cols-1 gap-2 pt-1">
         <button
           @click="updateQuizMode('study')"
           class="p-3 rounded-xl border text-left transition-colors cursor-pointer"
           :class="[
             defaultQuizMode === 'study'
-              ? 'bg-indigo-600/20 border-indigo-500 text-white font-bold'
+              ? 'bg-theme-soft border-theme-primary text-white font-bold'
               : 'bg-app-bg border-app-border text-app-muted'
           ]"
         >
@@ -383,7 +424,7 @@ const updateQuizMode = (mode) => {
           class="p-3 rounded-xl border text-left transition-colors cursor-pointer"
           :class="[
             defaultQuizMode === 'exam'
-              ? 'bg-indigo-600/20 border-indigo-500 text-white font-bold'
+              ? 'bg-theme-soft border-theme-primary text-white font-bold'
               : 'bg-app-bg border-app-border text-app-muted'
           ]"
         >
@@ -398,7 +439,7 @@ const updateQuizMode = (mode) => {
          ============================================== -->
     <div class="bg-app-card border border-app-border rounded-2xl p-4 space-y-3">
       <div class="flex items-center gap-2">
-        <Palette class="w-5 h-5 text-indigo-400" />
+        <Palette class="w-5 h-5 text-theme-light" />
         <h2 class="text-sm font-bold text-white">Warna Tampilan</h2>
       </div>
 
@@ -410,7 +451,7 @@ const updateQuizMode = (mode) => {
           class="p-2.5 rounded-xl border flex flex-col items-center text-center cursor-pointer active-press transition-all"
           :class="[
             currentTheme === t.id
-              ? 'border-indigo-500 bg-indigo-600/15 shadow-xs'
+              ? 'border-theme-primary bg-theme-soft shadow-xs'
               : 'border-app-border bg-app-bg hover:border-app-muted'
           ]"
         >

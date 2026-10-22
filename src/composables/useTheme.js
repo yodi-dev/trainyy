@@ -12,14 +12,14 @@ const THEMES = [
     id: 'emerald-dark',
     name: 'Emerald Forest',
     desc: 'Nuansa alam sejuk & Aksen Hijau Zamrud',
-    colorMeta: '#041d17',
+    colorMeta: '#041812',
     accentColor: '#10b981'
   },
   {
     id: 'ocean-dark',
     name: 'Ocean Abyss',
     desc: 'Samudra mendalam & Aksen Biru Langit',
-    colorMeta: '#031726',
+    colorMeta: '#031525',
     accentColor: '#0ea5e9'
   }
 ]
@@ -52,4 +52,3 @@ export function useTheme() {
     applyTheme
   }
 }
-

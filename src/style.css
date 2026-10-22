@@ -8,7 +8,7 @@
 }
 
 /* ====================================================
-   THEME 1: INDIGO DARK (DEFAULT DEEP CANVAS)
+   THEME 1: INDIGO DARK (DEFAULT DEEP NAVY)
    ==================================================== */
 :root,
 [data-theme="indigo-dark"] {
@@ -44,17 +44,17 @@
 }
 
 /* ====================================================
-   THEME 2: EMERALD NATURE (DEEP FOREST DARK)
+   THEME 2: EMERALD FOREST (DEEP NATURE DARK)
    ==================================================== */
 [data-theme="emerald-dark"] {
-  --bg-app: #041d17;
-  --bg-surface: #064e3b;
-  --bg-surface-translucent: rgba(6, 78, 59, 0.88);
-  --bg-card: rgba(6, 78, 59, 0.7);
-  --bg-card-hover: #085d47;
-  --bg-subtle: rgba(16, 185, 129, 0.2);
-  --border-subtle: rgba(16, 185, 129, 0.25);
-  --border-card: rgba(16, 185, 129, 0.35);
+  --bg-app: #041812;
+  --bg-surface: #063426;
+  --bg-surface-translucent: rgba(6, 52, 38, 0.88);
+  --bg-card: rgba(6, 44, 32, 0.75);
+  --bg-card-hover: #084532;
+  --bg-subtle: rgba(16, 185, 129, 0.18);
+  --border-subtle: rgba(16, 185, 129, 0.22);
+  --border-card: rgba(16, 185, 129, 0.3);
   --text-main: #ecfdf5;
   --text-muted: #a7f3d0;
   --text-dim: #6ee7b7;
@@ -79,17 +79,17 @@
 }
 
 /* ====================================================
-   THEME 3: OCEAN DARK (DEEP ABYSS & CYAN)
+   THEME 3: OCEAN ABYSS (DEEP BLUE & SKY)
    ==================================================== */
 [data-theme="ocean-dark"] {
-  --bg-app: #031726;
+  --bg-app: #031525;
   --bg-surface: #072a44;
   --bg-surface-translucent: rgba(7, 42, 68, 0.88);
-  --bg-card: rgba(7, 42, 68, 0.7);
+  --bg-card: rgba(7, 36, 58, 0.75);
   --bg-card-hover: #0c3656;
-  --bg-subtle: rgba(14, 116, 144, 0.35);
-  --border-subtle: rgba(14, 165, 233, 0.25);
-  --border-card: rgba(14, 165, 233, 0.35);
+  --bg-subtle: rgba(14, 165, 233, 0.2);
+  --border-subtle: rgba(14, 165, 233, 0.22);
+  --border-card: rgba(14, 165, 233, 0.3);
   --text-main: #f0f9ff;
   --text-muted: #bae6fd;
   --text-dim: #7dd3fc;
@@ -148,6 +148,43 @@
   border-color: var(--border-subtle);
 }
 
+/* Dynamic Theme Primary Accents */
+.bg-theme-primary {
+  background-color: var(--primary-base);
+}
+
+.hover\:bg-theme-hover:hover {
+  background-color: var(--primary-hover);
+}
+
+.text-theme-primary {
+  color: var(--primary-base);
+}
+
+.text-theme-light {
+  color: var(--primary-light);
+}
+
+.border-theme-primary {
+  border-color: var(--primary-base);
+}
+
+.border-theme-border {
+  border-color: var(--primary-border);
+}
+
+.bg-theme-soft {
+  background-color: var(--primary-soft);
+}
+
+.bg-theme-gradient {
+  background: linear-gradient(135deg, var(--primary-gradient-from), var(--primary-gradient-to));
+}
+
+.shadow-theme-glow {
+  box-shadow: 0 8px 24px -4px var(--primary-glow);
+}
+
 /* Touch active state feedback */
 .active-press {
   transition: transform 0.1s ease-in-out, opacity 0.1s ease;
@@ -181,4 +218,3 @@
 .safe-bottom {
   padding-bottom: max(1.25rem, calc(var(--sab) + 0.75rem));
 }
-

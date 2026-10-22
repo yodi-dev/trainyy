@@ -13,6 +13,7 @@ const SCOPES = [
 ].join(' ')
 
 const BACKUP_FILENAME = 'trainyy-backup.json'
+const SHEET_FILENAME = 'Trainyy - Rekap Analitik Belajar'
 
 export function useGoogleDrive() {
   const accessToken = ref(sessionStorage.getItem('trainyy_gdrive_token') || null)
@@ -87,6 +88,32 @@ export function useGoogleDrive() {
     return await requestToken()
   }
 
+  // Authenticated fetch with automatic token refresh on 401
+  const fetchWithAuth = async (url, options = {}, isRetry = false) => {
+    let token = accessToken.value
+    if (!token) {
+      token = await requestToken()
+    }
+
+    const headers = new Headers(options.headers || {})
+    headers.set('Authorization', `Bearer ${token}`)
+
+    const res = await fetch(url, {
+      ...options,
+      headers
+    })
+
+    if (res.status === 401 && !isRetry) {
+      console.warn('Google Access Token kedaluwarsa (401), memperbarui...')
+      accessToken.value = null
+      sessionStorage.removeItem('trainyy_gdrive_token')
+      await requestToken()
+      return fetchWithAuth(url, options, true)
+    }
+
+    return res
+  }
+
   // Connect Google Account
   const connect = async () => {
     isLoading.value = true
@@ -115,32 +142,6 @@ export function useGoogleDrive() {
     statusMessage.value = 'Akun Google telah diputuskan.'
   }
 
-  // Authenticated fetch with automatic token refresh on 401
-  const fetchWithAuth = async (url, options = {}, isRetry = false) => {
-    let token = accessToken.value
-    if (!token) {
-      token = await requestToken()
-    }
-
-    const headers = new Headers(options.headers || {})
-    headers.set('Authorization', `Bearer ${token}`)
-
-    const res = await fetch(url, {
-      ...options,
-      headers
-    })
-
-    if (res.status === 401 && !isRetry) {
-      console.warn('Google Access Token kedaluwarsa (401), memperbarui...')
-      accessToken.value = null
-      sessionStorage.removeItem('trainyy_gdrive_token')
-      await requestToken()
-      return fetchWithAuth(url, options, true)
-    }
-
-    return res
-  }
-
   // Find existing backup file on Drive
   const findBackupFileId = async () => {
     const q = encodeURIComponent(`name='${BACKUP_FILENAME}' and trashed=false`)
@@ -157,16 +158,36 @@ export function useGoogleDrive() {
     return null
   }
 
+  // Find existing Spreadsheet on Drive
+  const findExistingAnalyticsSheet = async () => {
+    try {
+      const q = encodeURIComponent(
+        `name='${SHEET_FILENAME}' and mimeType='application/vnd.google-apps.spreadsheet' and trashed=false`
+      )
+      const res = await fetchWithAuth(
+        `https://www.googleapis.com/drive/v3/files?q=${q}&fields=files(id,name)&pageSize=5`
+      )
+      if (res.ok) {
+        const data = await res.json()
+        if (data.files && data.files.length > 0) {
+          return data.files[0].id
+        }
+      }
+    } catch (e) {
+      console.warn('Gagal mencari spreadsheet yang sudah ada di Drive:', e)
+    }
+    return null
+  }
+
   // Backup Data to Google Drive
   const backup = async (fullData) => {
     isLoading.value = true
-    statusMessage.value = 'Mengunggah cadangan ke Google Drive...'
+    statusMessage.value = 'Menyimpan cadangan ke Google Drive...'
     try {
       const existingFileId = await findBackupFileId()
       const content = JSON.stringify(fullData, null, 2)
 
       if (existingFileId) {
-        // Update existing file
         const updateRes = await fetchWithAuth(
           `https://www.googleapis.com/upload/drive/v3/files/${existingFileId}?uploadType=media`,
           {
@@ -177,11 +198,10 @@ export function useGoogleDrive() {
         )
         if (!updateRes.ok) throw new Error('Gagal memperbarui file cadangan di Google Drive.')
       } else {
-        // Create new file
         const metadata = {
           name: BACKUP_FILENAME,
           mimeType: 'application/json',
-          description: 'Trainyy PWA Cloud Backup by Yodi'
+          description: 'Trainyy PWA Cloud Backup'
         }
 
         const boundary = '-------trainyy_boundary_' + Date.now()
@@ -213,7 +233,7 @@ export function useGoogleDrive() {
       const nowIso = new Date().toISOString()
       lastBackupTime.value = nowIso
       localStorage.setItem('trainyy_gdrive_last_backup', nowIso)
-      statusMessage.value = 'Cadangan berhasil disimpan ke Google Drive!'
+      statusMessage.value = 'Cadangan otomatis berhasil disimpan!'
       return { success: true }
     } catch (err) {
       statusMessage.value = `Gagal cadangkan: ${err.message}`
@@ -230,7 +250,7 @@ export function useGoogleDrive() {
     try {
       const fileId = await findBackupFileId()
       if (!fileId) {
-        throw new Error('Tidak ditemukan file cadangan (trainyy-backup.json) di Google Drive Anda.')
+        throw new Error('Tidak ditemukan file cadangan (trainyy-backup.json) di Google Drive.')
       }
 
       const res = await fetchWithAuth(
@@ -239,7 +259,7 @@ export function useGoogleDrive() {
       if (!res.ok) throw new Error('Gagal mengunduh file cadangan dari Google Drive.')
 
       const data = await res.json()
-      statusMessage.value = 'Cadangan berhasil dipulihkan dari Google Drive!'
+      statusMessage.value = 'Cadangan berhasil dipulihkan!'
       return { success: true, data }
     } catch (err) {
       statusMessage.value = `Gagal pulihkan: ${err.message}`
@@ -287,24 +307,163 @@ export function useGoogleDrive() {
     }
   }
 
+  // Ensure or Auto-create Analytics Google Spreadsheet
+  const ensureAnalyticsSheet = async () => {
+    // Jika sudah ada di local state, kembalikan langsung
+    if (linkedSheetId.value) {
+      return { success: true, sheetId: linkedSheetId.value }
+    }
+
+    isLoading.value = true
+    statusMessage.value = 'Menyiapkan buku rapor Google Spreadsheet...'
+
+    try {
+      // 1. Cek apakah file sudah pernah ada di Google Drive pengguna
+      const existingId = await findExistingAnalyticsSheet()
+      if (existingId) {
+        linkedSheetId.value = existingId
+        localStorage.setItem('trainyy_linked_sheet_id', existingId)
+        statusMessage.value = 'Buku rapor belajar berhasil dihubungkan!'
+        return { success: true, sheetId: existingId }
+      }
+
+      // 2. Jika belum ada, buat via Sheets API
+      let newSheetId = null
+      try {
+        const body = {
+          properties: {
+            title: SHEET_FILENAME
+          },
+          sheets: [
+            {
+              properties: {
+                title: 'Rapor Belajar',
+                gridProperties: { rowCount: 1000, columnCount: 10 }
+              },
+              data: [
+                {
+                  startRow: 0,
+                  startColumn: 0,
+                  rowData: [
+                    {
+                      values: [
+                        { userEnteredValue: { stringValue: 'Tanggal & Waktu' } },
+                        { userEnteredValue: { stringValue: 'Materi Belajar' } },
+                        { userEnteredValue: { stringValue: 'Mode Latihan' } },
+                        { userEnteredValue: { stringValue: 'Jumlah Benar' } },
+                        { userEnteredValue: { stringValue: 'Total Soal' } },
+                        { userEnteredValue: { stringValue: 'Akurasi (%)' } },
+                        { userEnteredValue: { stringValue: 'Durasi (Detik)' } },
+                        { userEnteredValue: { stringValue: 'Catatan' } }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+
+        const res = await fetchWithAuth('https://sheets.googleapis.com/v4/spreadsheets', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(body)
+        })
+
+        if (res.ok) {
+          const data = await res.json()
+          newSheetId = data.spreadsheetId
+        }
+      } catch (sheetErr) {
+        console.warn('Sheets API creation error, trying Drive API fallback:', sheetErr)
+      }
+
+      // 3. Fallback jika Sheets API belum aktif: Buat via Google Drive API
+      if (!newSheetId) {
+        const driveRes = await fetchWithAuth('https://www.googleapis.com/drive/v3/files', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            name: SHEET_FILENAME,
+            mimeType: 'application/vnd.google-apps.spreadsheet'
+          })
+        })
+
+        if (driveRes.ok) {
+          const driveData = await driveRes.json()
+          newSheetId = driveData.id
+
+          // Sisipkan baris judul kolom
+          try {
+            await fetchWithAuth(
+              `https://sheets.googleapis.com/v4/spreadsheets/${newSheetId}/values/A1:append?valueInputOption=USER_ENTERED`,
+              {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                  values: [[
+                    'Tanggal & Waktu',
+                    'Materi Belajar',
+                    'Mode Latihan',
+                    'Jumlah Benar',
+                    'Total Soal',
+                    'Akurasi (%)',
+                    'Durasi (Detik)',
+                    'Catatan'
+                  ]]
+                })
+              }
+            )
+          } catch (headerErr) {
+            console.warn('Gagal menambahkan header ke spreadsheet:', headerErr)
+          }
+        }
+      }
+
+      if (newSheetId) {
+        linkedSheetId.value = newSheetId
+        localStorage.setItem('trainyy_linked_sheet_id', newSheetId)
+        statusMessage.value = 'Buku rapor otomatis siap digunakan!'
+        return { success: true, sheetId: newSheetId }
+      }
+
+      throw new Error('Tidak dapat membuat Spreadsheet di Google Drive.')
+    } catch (err) {
+      console.warn('ensureAnalyticsSheet error:', err)
+      statusMessage.value = `Gagal menyiapkan rapor: ${err.message}`
+      return { success: false, error: err.message }
+    } finally {
+      isLoading.value = false
+    }
+  }
+
   // Append Quiz Session to Google Sheets
   const appendQuizToSheet = async (sessionData) => {
     let sheetId = linkedSheetId.value
-    if (!sheetId) return { success: false, error: 'Spreadsheet analitik belum dihubungkan.' }
+    if (!sheetId) {
+      const sheetInit = await ensureAnalyticsSheet()
+      if (sheetInit.success) {
+        sheetId = sheetInit.sheetId
+      } else {
+        return { success: false, error: 'Spreadsheet analitik belum dapat dihubungkan.' }
+      }
+    }
 
     try {
       const row = [
-        new Date(sessionData.completedAt).toLocaleString('id-ID'),
-        sessionData.deckTitle,
-        sessionData.mode,
-        sessionData.correctCount,
-        sessionData.totalQuestions,
-        `${sessionData.scorePercentage}%`,
-        sessionData.durationSeconds,
-        (sessionData.wrongQuestions || []).join('; ')
+        new Date(sessionData.completedAt || Date.now()).toLocaleString('id-ID'),
+        sessionData.deckTitle || 'Kuis Kilat',
+        sessionData.mode === 'study' ? 'Metode Belajar Cepat' : sessionData.mode === 'remedial' ? 'Latihan Soal Salah' : 'Ujian',
+        sessionData.correctCount ?? 0,
+        sessionData.totalQuestions ?? 0,
+        `${sessionData.scorePercentage ?? 0}%`,
+        sessionData.durationSeconds ?? 0,
+        (sessionData.wrongQuestionIds && sessionData.wrongQuestionIds.length > 0)
+          ? `${sessionData.wrongQuestionIds.length} soal salah`
+          : 'Sempurna (Semua Benar)'
       ]
 
-      const url = `https://sheets.googleapis.com/v4/spreadsheets/${sheetId}/values/Sheet1!A1:append?valueInputOption=USER_ENTERED`
+      const url = `https://sheets.googleapis.com/v4/spreadsheets/${sheetId}/values/A1:append?valueInputOption=USER_ENTERED`
       const res = await fetchWithAuth(url, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -313,69 +472,14 @@ export function useGoogleDrive() {
         })
       })
 
-      if (!res.ok) throw new Error('Gagal mencatat baris sesi ke Google Sheets.')
+      if (!res.ok) {
+        const errJson = await res.json().catch(() => ({}))
+        throw new Error(errJson.error?.message || 'Gagal menambahkan baris kuis ke Spreadsheet.')
+      }
       return { success: true }
     } catch (err) {
       console.warn('Sheets append error:', err)
       return { success: false, error: err.message }
-    }
-  }
-
-  // Create New Analytics Spreadsheet in Google Drive
-  const createAnalyticsSheet = async () => {
-    isLoading.value = true
-    statusMessage.value = 'Membuat Google Spreadsheet Analitik baru...'
-    try {
-      const body = {
-        properties: {
-          title: 'Trainyy - Rekap Analitik Belajar'
-        },
-        sheets: [
-          {
-            properties: {
-              title: 'Sheet1',
-              gridProperties: { rowCount: 1000, columnCount: 10 }
-            },
-            data: [
-              {
-                startRow: 0,
-                startColumn: 0,
-                rowData: [
-                  {
-                    values: [
-                      { userEnteredValue: { stringValue: 'Tanggal & Waktu' } },
-                      { userEnteredValue: { stringValue: 'Materi / Deck' } },
-                      { userEnteredValue: { stringValue: 'Mode' } },
-                      { userEnteredValue: { stringValue: 'Jumlah Benar' } },
-                      { userEnteredValue: { stringValue: 'Total Soal' } },
-                      { userEnteredValue: { stringValue: 'Akurasi' } },
-                      { userEnteredValue: { stringValue: 'Durasi (Detik)' } },
-                      { userEnteredValue: { stringValue: 'Catatan Soal Salah' } }
-                    ]
-                  }
-                ]
-              }
-            ]
-          }
-        ]
-      }
-
-      const res = await fetchWithAuth('https://sheets.googleapis.com/v4/spreadsheets', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(body)
-      })
-
-      if (!res.ok) throw new Error('Gagal membuat Spreadsheet baru.')
-      const data = await res.json()
-      linkedSheetId.value = data.spreadsheetId
-      localStorage.setItem('trainyy_linked_sheet_id', data.spreadsheetId)
-      statusMessage.value = 'Spreadsheet analitik berhasil dibuat!'
-      return { success: true, sheetId: data.spreadsheetId, url: data.spreadsheetUrl }
-    } catch (err) {
-      return { success: false, error: err.message }
-    } finally {
-      isLoading.value = false
     }
   }
 
@@ -394,7 +498,7 @@ export function useGoogleDrive() {
     listDrivePdfs,
     downloadDrivePdf,
     appendQuizToSheet,
-    createAnalyticsSheet
+    ensureAnalyticsSheet,
+    createAnalyticsSheet: ensureAnalyticsSheet // alias untuk kompatibilitas
   }
 }
-

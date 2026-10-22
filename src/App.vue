@@ -29,6 +29,7 @@ const {
   listDrivePdfs,
   downloadDrivePdf,
   appendQuizToSheet,
+  ensureAnalyticsSheet,
   createAnalyticsSheet
 } = useGoogleDrive()
 
@@ -175,7 +176,7 @@ const handleFinishQuiz = async (sessionData) => {
     await loadLocalData()
 
     // 3. Auto-sync: Append to Google Sheets (if connected & online)
-    if (isGoogleConnected.value && isOnline.value && linkedSheetId.value) {
+    if (isGoogleConnected.value && isOnline.value) {
       appendQuizToSheet(sessionRecord).catch((err) => {
         console.warn('Auto-append to Google Sheets failed:', err)
       })
@@ -204,10 +205,14 @@ const handleMarkMastered = async (questionId) => {
   }
 }
 
-// Connect Google and trigger initial auto-backup
+// Connect Google and trigger initial auto-backup & auto-sheet setup
 const handleConnectGoogle = async () => {
   const res = await connectGoogle()
   if (res?.success && isOnline.value) {
+    // 1. Auto ensure Google Sheets study report exists & linked
+    ensureAnalyticsSheet().catch((e) => console.warn('Auto-setup sheets error:', e))
+
+    // 2. Auto backup to Google Drive
     const totalDecks = await db.decks.count()
     if (totalDecks > 0) {
       triggerBackgroundDriveBackup()
@@ -297,11 +302,14 @@ onMounted(async () => {
   window.addEventListener('online', updateOnlineStatus)
   window.addEventListener('offline', updateOnlineStatus)
 
-  // Auto-backup in background if connected & online
+  // Auto-sync in background if connected & online
   if (isGoogleConnected.value && isOnline.value) {
-    setTimeout(() => {
+    setTimeout(async () => {
+      if (!linkedSheetId.value) {
+        await ensureAnalyticsSheet().catch(() => {})
+      }
       triggerBackgroundDriveBackup()
-    }, 2000)
+    }, 1500)
   }
 })
 
@@ -312,7 +320,7 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <div class="min-h-screen bg-app-bg text-app-text safe-top px-4 selection:bg-indigo-500 selection:text-white">
+  <div class="min-h-screen bg-app-bg text-app-text safe-top px-4 selection:bg-theme-primary selection:text-white">
     <!-- Main Shell Container (Centered max-w-md for native phone ergonomics) -->
     <main class="max-w-md mx-auto min-h-screen">
       <!-- Active Quiz View (Overlays entire screen when quiz is running) -->

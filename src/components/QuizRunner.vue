@@ -54,6 +54,18 @@ const progressPercentage = computed(() => {
   return Math.round(((currentIndex.value + 1) / props.questions.length) * 100)
 })
 
+// Helper pembersih teks penjelasan agar tidak ada kontradiksi
+const getCleanedExplanation = (text) => {
+  if (!text) return 'Jawaban yang tepat sesuai dengan konsep materi pembelajaran di atas.'
+  let clean = text.trim()
+  // Hapus awalan pujian jika ada
+  clean = clean.replace(/^(benar sekali|tepat sekali|jawaban anda benar|jawaban kamu tepat|tepat|benar|hebat|luar biasa)[!.,:\s]+/i, '')
+  if (clean.length > 0) {
+    clean = clean.charAt(0).toUpperCase() + clean.slice(1)
+  }
+  return clean
+}
+
 // Haptic feedback trigger
 const triggerHaptic = (isCorrect) => {
   if (typeof window !== 'undefined' && 'navigator' in window && navigator.vibrate) {
@@ -191,11 +203,11 @@ const formatTime = (secs) => {
         <div class="flex items-center gap-3">
           <div class="flex-1 h-2 rounded-full bg-app-card border border-app-border overflow-hidden">
             <div
-              class="h-full bg-gradient-to-r from-indigo-500 to-violet-500 transition-all duration-300 rounded-full"
+              class="h-full bg-theme-gradient transition-all duration-300 rounded-full"
               :style="{ width: `${progressPercentage}%` }"
             ></div>
           </div>
-          <span class="text-xs font-bold text-indigo-400 shrink-0">
+          <span class="text-xs font-bold text-theme-light shrink-0">
             {{ currentIndex + 1 }}/{{ questions.length }}
           </span>
         </div>
@@ -206,7 +218,7 @@ const formatTime = (secs) => {
         <!-- Question Badge & Text -->
         <div class="bg-app-card border border-app-border rounded-2xl p-4 sm:p-5 shadow-sm space-y-2">
           <div class="flex items-center justify-between text-[11px]">
-            <span class="px-2 py-0.5 rounded font-bold bg-indigo-500/20 text-indigo-300 border border-indigo-500/30">
+            <span class="px-2 py-0.5 rounded font-bold bg-theme-soft text-theme-light border border-theme-border">
               Pertanyaan #{{ currentIndex + 1 }}
             </span>
             <span class="text-app-dim">Pilihan Ganda</span>
@@ -228,7 +240,7 @@ const formatTime = (secs) => {
             :class="[
               // Default state
               selectedAnswers[currentQuestion.id] !== optIdx && !(isAnswerSubmitted && optIdx === currentQuestion.correctIndex)
-                ? 'bg-app-card border-app-border text-app-text hover:border-indigo-500/40'
+                ? 'bg-app-card border-app-border text-app-text hover:border-theme-border'
                 : '',
 
               // In Study Mode: Correct Answer (Green)
@@ -243,7 +255,7 @@ const formatTime = (secs) => {
 
               // In Exam Mode: Selected Option
               mode === 'exam' && selectedAnswers[currentQuestion.id] === optIdx
-                ? 'bg-indigo-600/30 border-indigo-500 text-white font-bold'
+                ? 'bg-theme-soft border-theme-primary text-white font-bold'
                 : ''
             ]"
           >
@@ -252,11 +264,11 @@ const formatTime = (secs) => {
               class="w-6 h-6 rounded-lg flex items-center justify-center font-bold text-xs shrink-0 mt-0.5 transition-colors"
               :class="[
                 isAnswerSubmitted && optIdx === currentQuestion.correctIndex
-                  ? 'bg-emerald-500 text-slate-950'
+                  ? 'bg-emerald-500 text-slate-950 font-black'
                   : isAnswerSubmitted && selectedAnswers[currentQuestion.id] === optIdx
                   ? 'bg-rose-500 text-white'
                   : selectedAnswers[currentQuestion.id] === optIdx
-                  ? 'bg-indigo-600 text-white'
+                  ? 'bg-theme-primary text-white'
                   : 'bg-app-subtle text-app-muted'
               ]"
             >
@@ -284,7 +296,7 @@ const formatTime = (secs) => {
         <!-- Explanation Sheet in Study Mode -->
         <div
           v-if="isAnswerSubmitted && mode === 'study'"
-          class="rounded-xl p-4 border animate-slide-up space-y-2"
+          class="rounded-xl p-4 border animate-slide-up space-y-2.5"
           :class="[
             selectedAnswers[currentQuestion.id] === currentQuestion.correctIndex
               ? 'bg-emerald-950/25 border-emerald-500/30 text-emerald-200'
@@ -301,13 +313,34 @@ const formatTime = (secs) => {
             </span>
             <span v-else class="text-rose-400 flex items-center gap-1.5">
               <XCircle class="w-4 h-4" />
-              <span>Belum Tepat, Ini Penjelasannya:</span>
+              <span>Jawaban Belum Tepat</span>
             </span>
           </div>
 
-          <p class="text-xs text-app-text/90 leading-relaxed">
-            {{ currentQuestion.explanation }}
-          </p>
+          <!-- Rincian Jawaban jika salah -->
+          <div
+            v-if="selectedAnswers[currentQuestion.id] !== currentQuestion.correctIndex"
+            class="p-2.5 rounded-lg bg-black/25 border border-white/10 text-xs space-y-1.5"
+          >
+            <div class="flex items-start gap-1.5 text-rose-300">
+              <span class="font-bold shrink-0">Pilihanmu:</span>
+              <span>
+                {{ String.fromCharCode(65 + selectedAnswers[currentQuestion.id]) }}. {{ currentQuestion.options[selectedAnswers[currentQuestion.id]] }}
+              </span>
+            </div>
+            <div class="flex items-start gap-1.5 text-emerald-300">
+              <span class="font-bold shrink-0">Jawaban Benar:</span>
+              <span>
+                {{ String.fromCharCode(65 + currentQuestion.correctIndex) }}. {{ currentQuestion.options[currentQuestion.correctIndex] }}
+              </span>
+            </div>
+          </div>
+
+          <!-- Penjelasan Konsep Edukatif -->
+          <div class="text-xs text-app-text/90 leading-relaxed pt-0.5">
+            <span class="font-bold text-white block mb-0.5">Penjelasan Materi:</span>
+            <p>{{ getCleanedExplanation(currentQuestion.explanation) }}</p>
+          </div>
         </div>
       </div>
 
@@ -316,7 +349,7 @@ const formatTime = (secs) => {
         <button
           v-if="mode === 'study' ? isAnswerSubmitted : selectedAnswers[currentQuestion.id] !== undefined"
           @click="nextQuestion"
-          class="w-full py-3.5 rounded-xl bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-500 hover:to-violet-500 text-white font-bold text-sm flex items-center justify-center gap-2 shadow-lg shadow-indigo-950/60 active-press cursor-pointer"
+          class="w-full py-3.5 rounded-xl bg-theme-gradient hover:opacity-95 text-white font-bold text-sm flex items-center justify-center gap-2 shadow-theme-glow active-press cursor-pointer"
         >
           <span>{{ currentIndex < questions.length - 1 ? 'Lanjut ke Soal Berikutnya' : 'Selesai & Lihat Skor' }}</span>
           <ArrowRight class="w-4 h-4" />
@@ -406,7 +439,7 @@ const formatTime = (secs) => {
 
           <button
             @click="emit('exit-quiz')"
-            class="w-full py-3 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs flex items-center justify-center gap-2 shadow-md active-press cursor-pointer"
+            class="w-full py-3 rounded-xl bg-theme-primary hover:bg-theme-hover text-white font-bold text-xs flex items-center justify-center gap-2 shadow-md active-press cursor-pointer"
           >
             <Home class="w-4 h-4" />
             <span>Kembali ke Beranda</span>
