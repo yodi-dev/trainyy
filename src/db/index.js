@@ -25,7 +25,7 @@ export async function seedDemoDataIfEmpty() {
 
   await db.decks.add({
     id: demoDeckId,
-    title: '🧠 Fondasi Active Recall & Testing Effect',
+    title: 'Fondasi Active Recall & Testing Effect',
     description: 'Konsep dasar mengapa belajar dengan kuis pilihan ganda jauh lebih efektif daripada sekadar membaca materi berulang-ulang.',
     category: 'Metode Belajar',
     sourceType: 'text',

@@ -92,7 +92,7 @@ const masteredQuestions = computed(() => {
         <CheckCircle class="w-6 h-6" />
       </div>
       <div>
-        <h2 class="text-base font-bold text-white">Luar Biasa, Sob! 🎉</h2>
+        <h2 class="text-base font-bold text-white">Semua Soal Sudah Dikuasai</h2>
         <p class="text-xs text-app-muted mt-1 max-w-xs mx-auto">
           Tidak ada soal yang berstatus keliru saat ini. Semua pertanyaan dari kuis-kuis sebelumnya sudah berhasil Anda jawab dengan tepat!
         </p>

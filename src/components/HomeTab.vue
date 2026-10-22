@@ -70,7 +70,7 @@ const totalAvailableQuestions = computed(() => {
           <span>Active Recall Mode</span>
         </div>
         <h1 class="text-xl font-bold text-white mt-0.5">
-          Hai, {{ userProfile?.name?.split(' ')[0] || 'Sobat Trainyy' }} 👋
+          Hai, {{ userProfile?.name?.split(' ')[0] || 'Sobat Trainyy' }}
         </h1>
       </div>
 

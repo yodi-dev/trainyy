@@ -350,7 +350,7 @@ const formatTime = (secs) => {
 
           <div>
             <h1 class="text-2xl font-black text-white tracking-tight">
-              {{ quizResults.percentage >= 80 ? 'Hebat Sekali! 🎉' : quizResults.percentage >= 60 ? 'Bagus, Pertahankan! 👍' : 'Tetap Semangat! 💪' }}
+              {{ quizResults.percentage >= 80 ? 'Hasil Sangat Memuaskan' : quizResults.percentage >= 60 ? 'Pemahaman Cukup Baik' : 'Perlu Diulang Kembali' }}
             </h1>
             <p class="text-xs text-app-muted mt-1">
               {{ deckTitle }}
