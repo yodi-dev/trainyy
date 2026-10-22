@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="id" class="dark" data-theme="indigo-dark">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <meta name="theme-color" content="#090d16" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="Trainyy" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <title>Trainyy - Belajar Kuis AI & PWA Offline</title>
+
+    <!-- Anti-FOUC Theme Script -->
+    <script>
+      (function() {
+        try {
+          var saved = localStorage.getItem('trainyy_theme_v1') || 'indigo-dark';
+          document.documentElement.setAttribute('data-theme', saved);
+          document.documentElement.classList.add('dark');
+          var meta = document.querySelector('meta[name="theme-color"]');
+          if (meta) {
+            var colors = {
+              'indigo-dark': '#090d16',
+              'emerald-dark': '#041d17',
+              'ocean-dark': '#031726'
+            };
+            meta.setAttribute('content', colors[saved] || '#090d16');
+          }
+        } catch(e) {}
+      })();
+    </script>
+
+    <!-- Google Identity Services (GIS) for Google Account, Drive, & Sheets -->
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
+  </head>
+  <body class="bg-app-bg text-app-text min-h-screen antialiased font-sans select-none overflow-x-hidden">
+    <div id="app"></div>
+    <script type="module" src="/src/main.js"></script>
+  </body>
+</html>
