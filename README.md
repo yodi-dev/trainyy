@@ -86,3 +86,4 @@ Dokumentasi detail spesifikasi teknis dan riwayat versi tersedia di:
 ## 📄 Lisensi
 
 Proyek personal berlisensi MIT. Dibuat dengan dedikasi untuk efisiensi belajar mandiri.
+

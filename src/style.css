@@ -181,3 +181,4 @@
 .safe-bottom {
   padding-bottom: max(1.25rem, calc(var(--sab) + 0.75rem));
 }
+

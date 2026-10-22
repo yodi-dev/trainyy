@@ -123,3 +123,4 @@ Belajar bukan sekadar membaca ulang materi secara pasif (*passive reading*), mel
 - **Jawaban Salah (Error):** `#f43f5e` (Rose Coral).
 - **Streak & XP (Warning):** `#f59e0b` (Amber Spark).
 - **Tipografi:** System sans-serif modern (`Inter`, `ui-sans-serif`, `-apple-system`) dengan kontras tinggi untuk kenyamanan membaca di ponsel.
+

@@ -130,3 +130,4 @@ export async function seedDemoDataIfEmpty() {
 
   await db.questions.bulkAdd(demoQuestions)
 }
+

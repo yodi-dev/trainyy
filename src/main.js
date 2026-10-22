@@ -9,3 +9,4 @@ seedDemoDataIfEmpty().catch((err) => {
 })
 
 createApp(App).mount('#app')
+

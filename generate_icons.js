@@ -169,3 +169,4 @@ for (const { file, size } of sizes) {
 }
 
 console.log('Trainyy PWA icons successfully generated in public/ folder!')
+
