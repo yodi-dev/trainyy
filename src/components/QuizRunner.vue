@@ -301,7 +301,7 @@ const formatTime = (secs) => {
             </span>
             <span v-else class="text-rose-400 flex items-center gap-1.5">
               <XCircle class="w-4 h-4" />
-              <span>Kurang Tepat, Perhatikan Pembahasan:</span>
+              <span>Belum Tepat, Ini Penjelasannya:</span>
             </span>
           </div>
 
@@ -374,7 +374,7 @@ const formatTime = (secs) => {
           </div>
 
           <div class="bg-app-card border border-app-border rounded-xl p-3 text-center">
-            <span class="text-xs text-app-muted block mb-0.5">Jawaban Keliru</span>
+            <span class="text-xs text-app-muted block mb-0.5">Jawaban Belum Tepat</span>
             <span class="text-xl font-bold text-rose-400">{{ quizResults.incorrect }}</span>
           </div>
         </div>
@@ -386,10 +386,10 @@ const formatTime = (secs) => {
         >
           <div class="flex items-center gap-2 font-bold text-rose-300">
             <RotateCcw class="w-4 h-4" />
-            <span>Ada {{ quizResults.wrongQuestions.length }} soal yang keliru</span>
+            <span>Ada {{ quizResults.wrongQuestions.length }} soal yang perlu kamu latih lagi</span>
           </div>
           <p class="text-app-muted text-[11px] leading-relaxed">
-            Soal-soal ini sudah otomatis ditambahkan ke Ruang Remedial untuk dilatih ulang agar materi benar-benar nyantol.
+            Soal-soal ini sudah dicatat di tab Soal Salah agar bisa kamu latih ulang kapan saja.
           </p>
         </div>
 

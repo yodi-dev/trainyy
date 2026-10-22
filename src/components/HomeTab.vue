@@ -67,7 +67,7 @@ const totalAvailableQuestions = computed(() => {
       <div>
         <div class="flex items-center gap-1.5 text-xs font-medium text-indigo-400 uppercase tracking-wider">
           <Zap class="w-3.5 h-3.5 fill-indigo-400" />
-          <span>Active Recall Mode</span>
+          <span>Metode Belajar Cepat</span>
         </div>
         <h1 class="text-xl font-bold text-white mt-0.5">
           Hai, {{ userProfile?.name?.split(' ')[0] || 'Sobat Trainyy' }}
@@ -99,7 +99,7 @@ const totalAvailableQuestions = computed(() => {
       <div class="relative z-10 space-y-3">
         <div class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-white/20 text-xs font-semibold backdrop-blur-sm">
           <Sparkles class="w-3.5 h-3.5 text-amber-300 fill-amber-300" />
-          <span>Sesi Cepat 10 Soal</span>
+          <span>Latihan 10 Soal</span>
         </div>
 
         <div>
@@ -107,7 +107,7 @@ const totalAvailableQuestions = computed(() => {
             Asah Ingatanmu Sekarang
           </h2>
           <p class="text-xs text-indigo-100/90 mt-1">
-            10 pertanyaan acak dari materi tersimpan untuk memperkuat memori jangka panjang.
+            10 pertanyaan acak dari materi tersimpan untuk menguji dan memperkuat ingatanmu.
           </p>
         </div>
 
@@ -129,7 +129,7 @@ const totalAvailableQuestions = computed(() => {
           <CheckCircle2 class="w-4 h-4" />
         </div>
         <div class="text-lg font-bold text-white">{{ totalQuestionsAnswered }}</div>
-        <div class="text-[10px] text-app-muted">Soal Dijawab</div>
+        <div class="text-[10px] text-app-muted">Soal Dikerjakan</div>
       </div>
 
       <div class="bg-app-card border border-app-border rounded-xl p-3 text-center">
@@ -137,7 +137,7 @@ const totalAvailableQuestions = computed(() => {
           <Award class="w-4 h-4" />
         </div>
         <div class="text-lg font-bold text-white">{{ averageScore }}%</div>
-        <div class="text-[10px] text-app-muted">Rata-rata Skor</div>
+        <div class="text-[10px] text-app-muted">Nilai Rata-rata</div>
       </div>
 
       <div 
@@ -148,7 +148,7 @@ const totalAvailableQuestions = computed(() => {
           <RotateCcw class="w-4 h-4" />
         </div>
         <div class="text-lg font-bold text-white">{{ remedialQuestions.length }}</div>
-        <div class="text-[10px] text-rose-400/90 font-medium">Soal Remedial</div>
+        <div class="text-[10px] text-rose-400/90 font-medium">Perlu Diulang</div>
       </div>
     </div>
 
@@ -208,7 +208,7 @@ const totalAvailableQuestions = computed(() => {
         <div>
           <p class="text-sm font-medium text-white">Belum Ada Materi Belajar</p>
           <p class="text-xs text-app-muted mt-1">
-            Unggah file PDF atau buat catatan teks materi Anda untuk di-generate otomatis oleh AI.
+            Unggah file PDF atau ketik catatan belajarmu untuk dibuatkan kuis secara otomatis.
           </p>
         </div>
         <button
@@ -225,7 +225,7 @@ const totalAvailableQuestions = computed(() => {
     <div v-if="recentSessions.length > 0" class="space-y-3">
       <h2 class="text-sm font-bold text-white uppercase tracking-wider flex items-center gap-2">
         <Clock class="w-4 h-4 text-indigo-400" />
-        <span>Riwayat Kuis Terakhir</span>
+        <span>Riwayat Latihan Terakhir</span>
       </h2>
 
       <div class="space-y-2">

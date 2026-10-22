@@ -201,10 +201,10 @@ const handleCreateDeck = async () => {
       <div>
         <h1 class="text-xl font-bold text-white flex items-center gap-2">
           <BookOpen class="w-5 h-5 text-indigo-400" />
-          <span>Materi & Bank Soal</span>
+          <span>Materi Belajar</span>
         </h1>
         <p class="text-xs text-app-muted mt-0.5">
-          Koleksi deck materi belajar Anda ({{ decks.length }} materi)
+          Daftar materi yang kamu pelajari ({{ decks.length }} materi)
         </p>
       </div>
 
@@ -213,7 +213,7 @@ const handleCreateDeck = async () => {
         class="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold shadow-md active-press cursor-pointer"
       >
         <Plus class="w-4 h-4" />
-        <span>Buat Deck</span>
+        <span>Tambah Materi</span>
       </button>
     </div>
 
@@ -240,7 +240,7 @@ const handleCreateDeck = async () => {
           <button
             @click="emit('delete-deck', deck.id)"
             class="text-app-dim hover:text-rose-400 p-1.5 rounded-lg active-press transition-colors cursor-pointer"
-            title="Hapus Deck"
+            title="Hapus Materi"
           >
             <Trash2 class="w-4 h-4" />
           </button>
@@ -273,7 +273,7 @@ const handleCreateDeck = async () => {
       <div>
         <h2 class="text-base font-bold text-white">Belum Ada Materi Belajar</h2>
         <p class="text-xs text-app-muted mt-1 max-w-xs mx-auto">
-          Unggah file materi PDF atau tempelkan catatan kuliah/pekerjaan Anda. Gemini AI akan meracik 10-30 soal kuis berkualitas.
+          Unggah file PDF atau ketik catatan belajarmu. Trainyy akan membuatkan soal kuis pilihan ganda secara otomatis.
         </p>
       </div>
       <button
@@ -281,7 +281,7 @@ const handleCreateDeck = async () => {
         class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-indigo-600 text-white text-xs font-bold active-press cursor-pointer hover:bg-indigo-500"
       >
         <Sparkles class="w-4 h-4 text-amber-300" />
-        <span>Buat Deck Baru dengan AI</span>
+        <span>Tambah Materi Baru</span>
       </button>
     </div>
 
@@ -299,7 +299,7 @@ const handleCreateDeck = async () => {
         <div class="flex items-center justify-between pb-3 border-b border-app-border">
           <div class="flex items-center gap-2">
             <Sparkles class="w-5 h-5 text-indigo-400" />
-            <h2 class="text-base font-bold text-white">Tambah Materi Baru (AI)</h2>
+            <h2 class="text-base font-bold text-white">Tambah Materi Belajar</h2>
           </div>
           <button
             @click="closeModal"
@@ -330,7 +330,7 @@ const handleCreateDeck = async () => {
             ]"
           >
             <FileText class="w-3.5 h-3.5" />
-            <span>Teks Bebas</span>
+            <span>Ketik Catatan</span>
           </button>
 
           <button
@@ -343,7 +343,7 @@ const handleCreateDeck = async () => {
             ]"
           >
             <Upload class="w-3.5 h-3.5" />
-            <span>Upload PDF</span>
+            <span>Pilih File PDF</span>
           </button>
 
           <button
@@ -363,32 +363,32 @@ const handleCreateDeck = async () => {
         <!-- Form Fields -->
         <div class="space-y-3 text-xs">
           <div>
-            <label class="block text-app-muted font-medium mb-1">Judul Materi / Deck</label>
+            <label class="block text-app-muted font-medium mb-1">Nama Materi Belajar</label>
             <input
               v-model="titleInput"
               type="text"
-              placeholder="Contoh: Belajar Docker & Container"
+              placeholder="Contoh: Dasar Bahasa Inggris, Bab 1 Sejarah, dll."
               class="w-full px-3.5 py-2.5 rounded-xl bg-app-bg border border-app-border text-white placeholder-app-dim focus:outline-hidden focus:border-indigo-500"
             />
           </div>
 
           <div>
-            <label class="block text-app-muted font-medium mb-1">Kategori / Topik</label>
+            <label class="block text-app-muted font-medium mb-1">Kategori (Opsional)</label>
             <input
               v-model="categoryInput"
               type="text"
-              placeholder="Contoh: Pemrograman, Sertifikasi, Bahasa"
+              placeholder="Contoh: Umum, Kuliah, Ujian, dll."
               class="w-full px-3.5 py-2.5 rounded-xl bg-app-bg border border-app-border text-white placeholder-app-dim focus:outline-hidden focus:border-indigo-500"
             />
           </div>
 
           <!-- Mode 1: Teks Bebas -->
           <div v-if="sourceMode === 'text'">
-            <label class="block text-app-muted font-medium mb-1">Tempelkan Catatan / Rangkuman Materi</label>
+            <label class="block text-app-muted font-medium mb-1">Salin atau Ketik Isi Catatan</label>
             <textarea
               v-model="textInput"
               rows="6"
-              placeholder="Tempelkan teks artikel, catatan kuliah, atau materi di sini..."
+              placeholder="Ketik atau tempelkan teks materi catatan belajarmu di sini..."
               class="w-full px-3.5 py-2.5 rounded-xl bg-app-bg border border-app-border text-white placeholder-app-dim focus:outline-hidden focus:border-indigo-500 resize-none font-mono text-[11px]"
             ></textarea>
             <div class="text-[10px] text-app-dim text-right mt-0.5">
@@ -398,7 +398,7 @@ const handleCreateDeck = async () => {
 
           <!-- Mode 2: Upload PDF -->
           <div v-if="sourceMode === 'pdf'">
-            <label class="block text-app-muted font-medium mb-1">Pilih Dokumen PDF</label>
+            <label class="block text-app-muted font-medium mb-1">Pilih Berkas PDF</label>
             <label
               class="border-2 border-dashed border-app-border rounded-xl p-5 flex flex-col items-center justify-center cursor-pointer hover:border-indigo-500/50 transition-colors bg-app-bg/50"
             >
@@ -412,11 +412,11 @@ const handleCreateDeck = async () => {
               <Upload v-else class="w-8 h-8 text-app-dim mb-2" />
               <div v-if="selectedFile" class="text-center">
                 <p class="font-bold text-white text-xs truncate max-w-xs">{{ selectedFile.name }}</p>
-                <p class="text-[11px] text-emerald-400 mt-0.5">Siap diekstrak ({{ (selectedFile.size / 1024).toFixed(0) }} KB)</p>
+                <p class="text-[11px] text-emerald-400 mt-0.5">Siap dibuatkan soal ({{ (selectedFile.size / 1024).toFixed(0) }} KB)</p>
               </div>
               <div v-else class="text-center">
-                <p class="font-medium text-white text-xs">Klik untuk memilih file PDF</p>
-                <p class="text-[10px] text-app-dim mt-0.5">Diproses 100% lokal di browser Anda</p>
+                <p class="font-medium text-white text-xs">Klik untuk memilih file PDF dari perangkat</p>
+                <p class="text-[10px] text-app-dim mt-0.5">Diproses secara privat dan aman di perangkatmu</p>
               </div>
             </label>
           </div>
@@ -426,7 +426,7 @@ const handleCreateDeck = async () => {
             <div v-if="!isGoogleConnected" class="p-4 rounded-xl bg-indigo-500/10 border border-indigo-500/30 text-center space-y-2">
               <Cloud class="w-6 h-6 text-indigo-400 mx-auto" />
               <p class="text-xs text-white font-medium">Akun Google Belum Terhubung</p>
-              <p class="text-[11px] text-app-muted">Hubungkan akun Google di tab Pengaturan untuk memilih PDF langsung dari Google Drive Anda.</p>
+              <p class="text-[11px] text-app-muted">Hubungkan akun Google di menu Pengaturan untuk membuka file PDF langsung dari Google Drive Anda.</p>
             </div>
 
             <div v-else class="space-y-2">
@@ -455,13 +455,13 @@ const handleCreateDeck = async () => {
           <!-- Generator Config: Count & Difficulty -->
           <div class="grid grid-cols-2 gap-3 pt-1">
             <div>
-              <label class="block text-app-muted font-medium mb-1">Jumlah Soal</label>
+              <label class="block text-app-muted font-medium mb-1">Banyak Soal</label>
               <select
                 v-model="questionCount"
                 class="w-full px-3 py-2 rounded-xl bg-app-bg border border-app-border text-white text-xs cursor-pointer focus:outline-hidden"
               >
-                <option :value="10">10 Soal (Cepat)</option>
-                <option :value="20">20 Soal (Menengah)</option>
+                <option :value="10">10 Soal (Santai)</option>
+                <option :value="20">20 Soal (Standar)</option>
                 <option :value="30">30 Soal (Lengkap)</option>
               </select>
             </div>
@@ -472,9 +472,9 @@ const handleCreateDeck = async () => {
                 v-model="difficulty"
                 class="w-full px-3 py-2 rounded-xl bg-app-bg border border-app-border text-white text-xs cursor-pointer focus:outline-hidden"
               >
-                <option value="easy">Mudah (Dasar)</option>
-                <option value="medium">Menengah (Standar)</option>
-                <option value="hard">Menantang (Analitis)</option>
+                <option value="easy">Dasar</option>
+                <option value="medium">Menengah</option>
+                <option value="hard">Mendalam</option>
               </select>
             </div>
           </div>
@@ -486,7 +486,7 @@ const handleCreateDeck = async () => {
           class="p-3 rounded-xl bg-indigo-500/10 border border-indigo-500/30 flex items-center gap-2.5 text-xs text-indigo-200"
         >
           <Loader2 class="w-4 h-4 text-indigo-400 animate-spin shrink-0" />
-          <span>{{ parsingProgress || generateProgress || 'Sedang memproses...' }}</span>
+          <span>{{ parsingProgress || generateProgress || 'Sedang menyiapkan soal...' }}</span>
         </div>
 
         <!-- Submit Button -->
@@ -496,7 +496,7 @@ const handleCreateDeck = async () => {
           class="w-full py-3 rounded-xl bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-500 hover:to-violet-500 text-white font-bold text-xs flex items-center justify-center gap-2 shadow-lg shadow-indigo-950/50 active-press cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
         >
           <Sparkles class="w-4 h-4 text-amber-300" />
-          <span>{{ isGenerating || isParsing ? 'Memproses Soal AI...' : 'Generate Bank Soal Sekarang' }}</span>
+          <span>{{ isGenerating || isParsing ? 'Sedang Menyusun Soal...' : 'Buat Soal Kuis Sekarang' }}</span>
         </button>
       </div>
     </div>

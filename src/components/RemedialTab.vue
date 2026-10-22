@@ -43,15 +43,15 @@ const masteredQuestions = computed(() => {
       <div>
         <h1 class="text-xl font-bold text-white flex items-center gap-2">
           <Target class="w-5 h-5 text-rose-400" />
-          <span>Ruang Remedial</span>
+          <span>Latihan Soal Salah</span>
         </h1>
         <p class="text-xs text-app-muted mt-0.5">
-          Perbaiki titik kelemahan Anda hingga benar-benar paham
+          Latih kembali pertanyaan yang belum tepat agar pemahamanmu makin kuat
         </p>
       </div>
 
       <div class="px-2.5 py-1 rounded-full bg-rose-500/10 border border-rose-500/30 text-rose-400 text-xs font-bold">
-        {{ remedialQuestions.length }} Perlu Dilatih
+        {{ remedialQuestions.length }} Perlu Diulang
       </div>
     </div>
 
@@ -62,7 +62,7 @@ const masteredQuestions = computed(() => {
     >
       <div class="flex items-center gap-2 text-rose-300 text-xs font-bold">
         <RotateCcw class="w-4 h-4" />
-        <span>Fokus Penguatan Titik Lemah</span>
+        <span>Fokus Perbaiki Jawaban</span>
       </div>
 
       <div>
@@ -70,7 +70,7 @@ const masteredQuestions = computed(() => {
           Latih Ulang Soal-Soal yang Salah
         </h2>
         <p class="text-xs text-app-muted mt-1">
-          Sistem akan menyusun sesi kuis 10 soal yang khusus diambil dari pertanyaan yang pernah Anda jawab keliru.
+          Latih ulang soal-soal yang pernah kamu jawab keliru sampai kamu benar-benar menguasainya.
         </p>
       </div>
 
@@ -79,7 +79,7 @@ const masteredQuestions = computed(() => {
         class="w-full flex items-center justify-center gap-2 py-3 px-4 rounded-xl bg-rose-600 hover:bg-rose-500 text-white font-bold text-xs shadow-md shadow-rose-950/40 active-press cursor-pointer transition-colors"
       >
         <Play class="w-4 h-4 fill-white" />
-        <span>Mulai Sesi Remedial (Maks. 10 Soal)</span>
+        <span>Latih Ulang Soal Salah (Maks. 10 Soal)</span>
       </button>
     </div>
 
@@ -94,7 +94,7 @@ const masteredQuestions = computed(() => {
       <div>
         <h2 class="text-base font-bold text-white">Semua Soal Sudah Dikuasai</h2>
         <p class="text-xs text-app-muted mt-1 max-w-xs mx-auto">
-          Tidak ada soal yang berstatus keliru saat ini. Semua pertanyaan dari kuis-kuis sebelumnya sudah berhasil Anda jawab dengan tepat!
+          Hebat! Tidak ada soal yang keliru saat ini. Semua pertanyaan kuis berhasil kamu jawab dengan tepat.
         </p>
       </div>
     </div>
@@ -143,7 +143,7 @@ const masteredQuestions = computed(() => {
             </div>
 
             <div>
-              <span class="text-[10px] font-bold text-app-muted uppercase tracking-wider block">Pembahasan:</span>
+              <span class="text-[10px] font-bold text-app-muted uppercase tracking-wider block">Penjelasan:</span>
               <p class="text-app-muted text-[11px] leading-relaxed mt-0.5">
                 {{ q.explanation }}
               </p>

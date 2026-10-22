@@ -22,8 +22,8 @@ const emit = defineEmits(['update:tab'])
 const tabs = [
   { id: 'home', label: 'Beranda', icon: Home },
   { id: 'decks', label: 'Materi', icon: BookOpen },
-  { id: 'remedial', label: 'Remedial', icon: Target, badge: true },
-  { id: 'settings', label: 'Akun & Sync', icon: Settings }
+  { id: 'remedial', label: 'Soal Salah', icon: Target, badge: true },
+  { id: 'settings', label: 'Pengaturan', icon: Settings }
 ]
 </script>
 

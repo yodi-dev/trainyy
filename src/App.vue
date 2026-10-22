@@ -87,7 +87,7 @@ const startQuickQuiz = () => {
 
   activeQuiz.value = {
     questions: selected,
-    deckTitle: 'Kuis Kilat Active Recall (10 Soal)',
+    deckTitle: 'Latihan 10 Soal Acak',
     deckId: null,
     mode: defaultMode
   }
@@ -118,7 +118,7 @@ const startRemedialQuiz = (customList = null) => {
 
   activeQuiz.value = {
     questions: shuffled,
-    deckTitle: 'Ruang Remedial (Latih Ulang Soal Salah)',
+    deckTitle: 'Latih Ulang Soal yang Salah',
     deckId: null,
     mode: 'study'
   }
@@ -245,7 +245,7 @@ const triggerBackgroundDriveBackup = async () => {
 const handleDriveRestore = async () => {
   const res = await restoreFromDrive()
   if (res.success && res.data) {
-    if (confirm('Apakah Anda ingin memulihkan materi dan riwayat dari Google Drive? Data lokal saat ini akan diperbarui.')) {
+    if (confirm('Ingin memulihkan data materi dan catatan belajarmu dari Google Drive? Data di perangkat akan disesuaikan dengan data cadangan.')) {
       if (res.data.decks) {
         await db.decks.clear()
         await db.decks.bulkAdd(res.data.decks)

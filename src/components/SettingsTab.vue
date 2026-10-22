@@ -1,5 +1,5 @@
 <script setup>
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 import { 
   Settings, 
   Key, 
@@ -13,9 +13,11 @@ import {
   Check, 
   Eye, 
   EyeOff, 
-  ShieldCheck, 
   Sparkles,
-  Info
+  Info,
+  ChevronDown,
+  ChevronUp,
+  HelpCircle
 } from '@lucide/vue'
 import { useTheme } from '../composables/useTheme'
 
@@ -51,21 +53,24 @@ const emit = defineEmits([
   'disconnect-google',
   'backup-drive',
   'restore-drive',
-  'create-sheet',
-  'export-local-json',
-  'import-local-json'
+  'create-sheet'
 ])
 
 const { themes, currentTheme, applyTheme } = useTheme()
 
-// Gemini API Key State
+// AI Key State
 const apiKeyInput = ref(localStorage.getItem('trainyy_gemini_api_key') || '')
 const showApiKey = ref(false)
+const showAiGuide = ref(false)
 const apiKeySavedMessage = ref('')
+
+const hasActiveKey = computed(() => {
+  return !!(apiKeyInput.value.trim() || import.meta.env.VITE_GEMINI_API_KEY)
+})
 
 const saveApiKey = () => {
   localStorage.setItem('trainyy_gemini_api_key', apiKeyInput.value.trim())
-  apiKeySavedMessage.value = 'API Key berhasil disimpan!'
+  apiKeySavedMessage.value = 'Kunci AI berhasil disimpan!'
   setTimeout(() => {
     apiKeySavedMessage.value = ''
   }, 3000)
@@ -80,15 +85,15 @@ const updateQuizMode = (mode) => {
 </script>
 
 <template>
-  <div class="space-y-6 pb-24">
+  <div class="space-y-5 pb-24">
     <!-- Header -->
     <div class="pt-2">
       <h1 class="text-xl font-bold text-white flex items-center gap-2">
         <Settings class="w-5 h-5 text-indigo-400" />
-        <span>Pengaturan & Akun</span>
+        <span>Pengaturan</span>
       </h1>
       <p class="text-xs text-app-muted mt-0.5">
-        Kelola sinkronisasi Google Cloud, API AI, dan preferensi tampilan
+        Kelola akun, cadangan data, dan tampilan aplikasi
       </p>
     </div>
 
@@ -102,13 +107,13 @@ const updateQuizMode = (mode) => {
     </div>
 
     <!-- ==============================================
-         SECTION 1: GOOGLE ACCOUNT & DRIVE SYNC
+         SECTION 1: GOOGLE ACCOUNT & DRIVE BACKUP
          ============================================== -->
-    <div class="bg-app-card border border-app-border rounded-2xl p-4 space-y-4">
+    <div class="bg-app-card border border-app-border rounded-2xl p-4 space-y-3.5">
       <div class="flex items-center justify-between">
         <div class="flex items-center gap-2">
           <Cloud class="w-5 h-5 text-indigo-400" />
-          <h2 class="text-sm font-bold text-white">Akun Google & Google Drive ($0)</h2>
+          <h2 class="text-sm font-bold text-white">Akun Google & Cadangan Cloud</h2>
         </div>
         <span
           class="text-[10px] font-bold px-2 py-0.5 rounded-full border"
@@ -118,7 +123,7 @@ const updateQuizMode = (mode) => {
               : 'bg-app-subtle text-app-muted border-app-border'
           ]"
         >
-          {{ isConnected ? 'Terhubung' : 'Belum Terhubung' }}
+          {{ isConnected ? 'Tersambung' : 'Belum Masuk' }}
         </span>
       </div>
 
@@ -128,14 +133,14 @@ const updateQuizMode = (mode) => {
           <img
             v-if="userProfile?.picture"
             :src="userProfile.picture"
-            alt="Google Avatar"
+            alt="Foto Profil"
             class="w-9 h-9 rounded-full border border-indigo-500/40"
           />
           <div
             v-else
             class="w-9 h-9 rounded-full bg-indigo-600 flex items-center justify-center font-bold text-white text-sm"
           >
-            {{ userProfile?.name?.charAt(0) || 'G' }}
+            {{ userProfile?.name?.charAt(0) || 'U' }}
           </div>
           <div class="min-w-0">
             <p class="text-xs font-bold text-white truncate">{{ userProfile?.name }}</p>
@@ -146,7 +151,7 @@ const updateQuizMode = (mode) => {
         <button
           @click="emit('disconnect-google')"
           class="p-2 rounded-lg text-app-dim hover:text-rose-400 active-press cursor-pointer"
-          title="Putuskan Akun"
+          title="Keluar dari Akun"
         >
           <LogOut class="w-4 h-4" />
         </button>
@@ -154,8 +159,8 @@ const updateQuizMode = (mode) => {
 
       <!-- Connect Button (Not Connected) -->
       <div v-else class="space-y-2">
-        <p class="text-xs text-app-muted">
-          Hubungkan akun Google Anda untuk menyimpan cadangan otomatis ke Google Drive pribadi dan mengaktifkan integrasi Google Sheets.
+        <p class="text-xs text-app-muted leading-relaxed">
+          Masuk dengan akun Google untuk menyimpan materi dan riwayat belajarmu secara gratis dan aman di Google Drive pribadi.
         </p>
         <button
           @click="emit('connect-google')"
@@ -188,7 +193,7 @@ const updateQuizMode = (mode) => {
             class="py-2 px-3 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-semibold text-xs flex items-center justify-center gap-1.5 active-press cursor-pointer disabled:opacity-50"
           >
             <Upload class="w-3.5 h-3.5" />
-            <span>Cadangkan ke Drive</span>
+            <span>Simpan Cadangan</span>
           </button>
 
           <button
@@ -197,30 +202,30 @@ const updateQuizMode = (mode) => {
             class="py-2 px-3 rounded-xl bg-app-subtle hover:bg-app-border text-white font-semibold text-xs flex items-center justify-center gap-1.5 active-press cursor-pointer border border-app-border disabled:opacity-50"
           >
             <Download class="w-3.5 h-3.5" />
-            <span>Pulihkan Data</span>
+            <span>Ambil Cadangan</span>
           </button>
         </div>
       </div>
     </div>
 
     <!-- ==============================================
-         SECTION 2: GOOGLE SHEETS ANALYTICS
+         SECTION 2: GOOGLE SHEETS RAPOR BELAJAR
          ============================================== -->
     <div class="bg-app-card border border-app-border rounded-2xl p-4 space-y-3">
       <div class="flex items-center gap-2">
         <FileSpreadsheet class="w-5 h-5 text-emerald-400" />
-        <h2 class="text-sm font-bold text-white">Google Sheets Analytics</h2>
+        <h2 class="text-sm font-bold text-white">Rapor Belajar Otomatis (Spreadsheet)</h2>
       </div>
 
-      <p class="text-xs text-app-muted">
-        Setiap kali sesi kuis selesai, Trainyy otomatis mencatat skor dan evaluasi ke Google Spreadsheet pribadi Anda.
+      <p class="text-xs text-app-muted leading-relaxed">
+        Setiap kali kamu menyelesaikan kuis, skor dan catatan belajarmu otomatis dicatat ke Google Spreadsheet pribadi untuk melihat grafik perkembanganmu.
       </p>
 
       <div v-if="isConnected" class="space-y-2.5">
         <div v-if="linkedSheetId" class="p-3 rounded-xl bg-app-bg border border-app-border flex items-center justify-between text-xs">
           <div>
-            <p class="font-bold text-white">Trainyy - Rekap Analitik Belajar</p>
-            <p class="text-[10px] text-emerald-400 mt-0.5">Spreadsheet aktif terhubung</p>
+            <p class="font-bold text-white">Rapor Belajar Trainyy</p>
+            <p class="text-[10px] text-emerald-400 mt-0.5">Tersambung ke Spreadsheet Google</p>
           </div>
 
           <a
@@ -230,7 +235,7 @@ const updateQuizMode = (mode) => {
             class="flex items-center gap-1 px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-semibold active-press"
           >
             <ExternalLink class="w-3 h-3" />
-            <span>Buka Sheet</span>
+            <span>Buka Rapor</span>
           </a>
         </div>
 
@@ -241,82 +246,106 @@ const updateQuizMode = (mode) => {
           class="w-full py-2.5 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs flex items-center justify-center gap-2 active-press cursor-pointer disabled:opacity-50"
         >
           <FileSpreadsheet class="w-4 h-4" />
-          <span>Buat Google Spreadsheet Analitik Baru</span>
+          <span>Buat Buku Rapor Otomatis</span>
         </button>
       </div>
 
       <p v-else class="text-[11px] text-app-dim italic">
-        Hubungkan akun Google di atas untuk mengaktifkan fitur pencatatan ke Google Sheets.
+        Masuk dengan akun Google di atas untuk mengaktifkan buku rapor belajar.
       </p>
     </div>
 
     <!-- ==============================================
-         SECTION 3: GOOGLE GEMINI API KEY
+         SECTION 3: AI PEMBUAT SOAL
          ============================================== -->
     <div class="bg-app-card border border-app-border rounded-2xl p-4 space-y-3">
       <div class="flex items-center justify-between">
         <div class="flex items-center gap-2">
-          <Key class="w-5 h-5 text-amber-400" />
-          <h2 class="text-sm font-bold text-white">Google Gemini API Key</h2>
+          <Sparkles class="w-5 h-5 text-amber-400" />
+          <h2 class="text-sm font-bold text-white">Fitur AI Pembuat Soal</h2>
         </div>
-        <span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-500/15 text-amber-300 border border-amber-500/30">
-          Free Tier
+        <span
+          class="text-[10px] font-bold px-2 py-0.5 rounded-full border"
+          :class="[
+            hasActiveKey
+              ? 'bg-emerald-500/15 text-emerald-400 border-emerald-500/30'
+              : 'bg-amber-500/15 text-amber-300 border-amber-500/30'
+          ]"
+        >
+          {{ hasActiveKey ? 'Siap Digunakan' : 'Perlu Kunci AI' }}
         </span>
       </div>
 
-      <p class="text-xs text-app-muted">
-        Digunakan untuk membuat bank soal kuis secara instan dari materi PDF/teks. Dapatkan API Key gratis di
-        <a
-          href="https://aistudio.google.com/app/apikey"
-          target="_blank"
-          rel="noopener noreferrer"
-          class="text-indigo-400 underline font-medium"
-        >
-          Google AI Studio
-        </a>.
+      <p class="text-xs text-app-muted leading-relaxed">
+        Fitur ini membaca materi teks atau PDF Anda dan secara cerdas menyusun 10–30 pertanyaan kuis pilihan ganda beserta kunci dan penjelasannya.
       </p>
 
-      <div class="space-y-2">
-        <div class="relative">
-          <input
-            v-model="apiKeyInput"
-            :type="showApiKey ? 'text' : 'password'"
-            placeholder="AIzaSy..."
-            class="w-full pl-3.5 pr-10 py-2.5 rounded-xl bg-app-bg border border-app-border text-white text-xs font-mono placeholder-app-dim focus:outline-hidden focus:border-indigo-500"
-          />
-          <button
-            @click="showApiKey = !showApiKey"
-            class="absolute right-3 top-2.5 text-app-dim hover:text-white cursor-pointer"
-          >
-            <EyeOff v-if="showApiKey" class="w-4 h-4" />
-            <Eye v-else class="w-4 h-4" />
-          </button>
-        </div>
-
-        <div class="flex items-center justify-between">
-          <span v-if="apiKeySavedMessage" class="text-xs text-emerald-400 font-medium">
-            {{ apiKeySavedMessage }}
+      <!-- Accordion / Toggle for Key Input -->
+      <div class="border border-app-border rounded-xl p-3 bg-app-bg space-y-2.5 text-xs">
+        <button
+          @click="showAiGuide = !showAiGuide"
+          class="w-full flex items-center justify-between text-left font-medium text-white hover:text-indigo-300 transition-colors cursor-pointer"
+        >
+          <span class="flex items-center gap-1.5">
+            <Key class="w-3.5 h-3.5 text-indigo-400" />
+            <span>{{ hasActiveKey ? 'Atur Kunci AI Pribadi (Opsional)' : 'Masukkan Kunci AI Gratis' }}</span>
           </span>
-          <span v-else></span>
+          <ChevronUp v-if="showAiGuide" class="w-4 h-4 text-app-dim" />
+          <ChevronDown v-else class="w-4 h-4 text-app-dim" />
+        </button>
 
-          <button
-            @click="saveApiKey"
-            class="px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs active-press cursor-pointer shadow-xs"
-          >
-            Simpan API Key
-          </button>
+        <div v-if="showAiGuide || !hasActiveKey" class="space-y-2.5 pt-1 border-t border-app-border/60 animate-slide-up">
+          <p class="text-[11px] text-app-dim leading-relaxed">
+            Kunci ini gratis selamanya dari Google untuk akun masing-masing. Cukup salin dari situs resmi
+            <a
+              href="https://aistudio.google.com/app/apikey"
+              target="_blank"
+              rel="noopener noreferrer"
+              class="text-indigo-400 underline font-medium"
+            >
+              Google AI Studio
+            </a>
+            (klik tombol <em>"Create API Key"</em>) lalu tempelkan di bawah:
+          </p>
+
+          <div class="relative">
+            <input
+              v-model="apiKeyInput"
+              :type="showApiKey ? 'text' : 'password'"
+              placeholder="Tempel kunci AI di sini (berawalan AIzaSy...)"
+              class="w-full pl-3 pr-9 py-2 rounded-lg bg-app-card border border-app-border text-white text-xs font-mono placeholder-app-dim focus:outline-hidden focus:border-indigo-500"
+            />
+            <button
+              @click="showApiKey = !showApiKey"
+              class="absolute right-2.5 top-2 text-app-dim hover:text-white cursor-pointer"
+            >
+              <EyeOff v-if="showApiKey" class="w-3.5 h-3.5" />
+              <Eye v-else class="w-3.5 h-3.5" />
+            </button>
+          </div>
+
+          <div class="flex items-center justify-between">
+            <span v-if="apiKeySavedMessage" class="text-xs text-emerald-400 font-medium">
+              {{ apiKeySavedMessage }}
+            </span>
+            <span v-else></span>
+
+            <button
+              @click="saveApiKey"
+              class="px-3.5 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs active-press cursor-pointer"
+            >
+              Simpan Kunci
+            </button>
+          </div>
         </div>
       </div>
     </div>
 
     <!-- ==============================================
-         SECTION 4: QUIZ MODE PREFERENCE
+         SECTION 4: GAYA BELAJAR
          ============================================== -->
     <div class="bg-app-card border border-app-border rounded-2xl p-4 space-y-3">
-      <div class="flex items-center gap-2">
-        <Sparkles class="w-5 h-5 text-indigo-400" />
-        <h2 class="text-sm font-bold text-white">Mode Pembelajaran Default</h2>
-      </div>
+      <h2 class="text-sm font-bold text-white">Gaya Belajar Kuis</h2>
 
       <div class="grid grid-cols-2 gap-2 text-xs">
         <button
@@ -328,8 +357,8 @@ const updateQuizMode = (mode) => {
               : 'bg-app-bg border-app-border text-app-muted'
           ]"
         >
-          <p class="text-xs">Mode Belajar (Rekomendasi)</p>
-          <p class="text-[10px] text-app-dim mt-0.5 font-normal">Feedback instan & penjelasan di setiap soal</p>
+          <p class="text-xs">Mode Santai (Rekomendasi)</p>
+          <p class="text-[10px] text-app-dim mt-0.5 font-normal">Jawaban benar & penjelasan langsung terlihat setelah memilih</p>
         </button>
 
         <button
@@ -341,19 +370,19 @@ const updateQuizMode = (mode) => {
               : 'bg-app-bg border-app-border text-app-muted'
           ]"
         >
-          <p class="text-xs">Mode Simulasi Ujian</p>
-          <p class="text-[10px] text-app-dim mt-0.5 font-normal">Jawab 10 soal sekaligus, rekap di akhir</p>
+          <p class="text-xs">Mode Ujian</p>
+          <p class="text-[10px] text-app-dim mt-0.5 font-normal">Jawab 10 soal sekaligus, lihat skor di akhir</p>
         </button>
       </div>
     </div>
 
     <!-- ==============================================
-         SECTION 5: THEME CUSTOMIZATION
+         SECTION 5: WARNA TEMA
          ============================================== -->
     <div class="bg-app-card border border-app-border rounded-2xl p-4 space-y-3">
       <div class="flex items-center gap-2">
         <Palette class="w-5 h-5 text-indigo-400" />
-        <h2 class="text-sm font-bold text-white">Pilihan Tema Visual</h2>
+        <h2 class="text-sm font-bold text-white">Warna Tampilan</h2>
       </div>
 
       <div class="grid grid-cols-3 gap-2">
@@ -380,7 +409,7 @@ const updateQuizMode = (mode) => {
     <!-- App Info & Version -->
     <div class="text-center space-y-1 text-app-dim text-xs pt-2">
       <p class="font-bold text-app-muted">Trainyy v1.0 • Inisial Y (Yodi)</p>
-      <p class="text-[11px]">Dibuat untuk pembelajaran mandiri yang efektif dan gratis selamanya.</p>
+      <p class="text-[11px]">Dibuat untuk belajar mandiri yang praktis, cepat, dan bisa diakses kapan saja.</p>
     </div>
   </div>
 </template>
