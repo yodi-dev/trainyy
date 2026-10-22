@@ -20,5 +20,11 @@
     "tailwindcss": "^4.3.3",
     "vite": "^8.3.0",
     "vite-plugin-pwa": "^2.0.0"
+  },
+  "optionalDependencies": {
+    "@rolldown/binding-linux-x64-gnu": "1.2.13",
+    "@rolldown/binding-linux-x64-musl": "1.2.13",
+    "@tailwindcss/oxide-linux-x64-gnu": "^4.3.3",
+    "@tailwindcss/oxide-linux-x64-musl": "^4.3.3"
   }
 }
