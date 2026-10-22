@@ -16,7 +16,16 @@ const BACKUP_FILENAME = 'trainyy-backup.json'
 const SHEET_FILENAME = 'Trainyy - Rekap Analitik Belajar'
 
 export function useGoogleDrive() {
-  const accessToken = ref(sessionStorage.getItem('trainyy_gdrive_token') || null)
+  const getInitialToken = () => {
+    const saved = localStorage.getItem('trainyy_gdrive_token')
+    const expiresAt = parseInt(localStorage.getItem('trainyy_gdrive_token_expires') || '0', 10)
+    if (saved && expiresAt > Date.now()) {
+      return saved
+    }
+    return null
+  }
+
+  const accessToken = ref(getInitialToken())
   const userProfile = ref(
     JSON.parse(localStorage.getItem('trainyy_gdrive_user') || 'null')
   )
@@ -32,11 +41,11 @@ export function useGoogleDrive() {
   const isConnected = computed(() => !!userProfile.value)
 
   // Request Access Token from Google Identity Services (GIS)
-  const requestToken = () => {
+  const requestToken = (promptType = '') => {
     return new Promise((resolve, reject) => {
       if (!window.google || !window.google.accounts || !window.google.accounts.oauth2) {
         reject(
-          new Error('Google Identity Services belum termuat. Periksa koneksi internet.')
+          new Error('Google Identity Services belum termuat. Periksa koneksi internet atau matikan pemblokir iklan (ad blocker).')
         )
         return
       }
@@ -47,11 +56,20 @@ export function useGoogleDrive() {
           scope: SCOPES,
           callback: async (resp) => {
             if (resp.error) {
-              reject(new Error(resp.error))
+              let errorDetail = resp.error
+              if (resp.error === 'access_denied') {
+                errorDetail = 'Izin akun Google dibatalkan atau ditolak.'
+              } else if (resp.error === 'redirect_uri_mismatch' || resp.error === 'origin_mismatch') {
+                errorDetail = `Domain ${window.location.origin} belum diizinkan di Google Cloud Console. Silakan tambahkan URL ini ke Authorized JavaScript Origins.`
+              }
+              reject(new Error(errorDetail))
               return
             }
+
             accessToken.value = resp.access_token
-            sessionStorage.setItem('trainyy_gdrive_token', resp.access_token)
+            const exp = Date.now() + (resp.expires_in || 3500) * 1000
+            localStorage.setItem('trainyy_gdrive_token', resp.access_token)
+            localStorage.setItem('trainyy_gdrive_token_expires', String(exp))
 
             // Fetch user profile info
             try {
@@ -75,7 +93,7 @@ export function useGoogleDrive() {
           }
         })
 
-        tokenClient.requestAccessToken({ prompt: '' })
+        tokenClient.requestAccessToken({ prompt: promptType })
       } catch (err) {
         reject(err)
       }
@@ -84,15 +102,18 @@ export function useGoogleDrive() {
 
   // Ensure valid token
   const ensureToken = async () => {
-    if (accessToken.value) return accessToken.value
-    return await requestToken()
+    const expiresAt = parseInt(localStorage.getItem('trainyy_gdrive_token_expires') || '0', 10)
+    if (accessToken.value && expiresAt > Date.now()) {
+      return accessToken.value
+    }
+    return await requestToken('')
   }
 
   // Authenticated fetch with automatic token refresh on 401
   const fetchWithAuth = async (url, options = {}, isRetry = false) => {
-    let token = accessToken.value
+    let token = await ensureToken().catch(() => null)
     if (!token) {
-      token = await requestToken()
+      token = await requestToken('')
     }
 
     const headers = new Headers(options.headers || {})
@@ -106,8 +127,9 @@ export function useGoogleDrive() {
     if (res.status === 401 && !isRetry) {
       console.warn('Google Access Token kedaluwarsa (401), memperbarui...')
       accessToken.value = null
-      sessionStorage.removeItem('trainyy_gdrive_token')
-      await requestToken()
+      localStorage.removeItem('trainyy_gdrive_token')
+      localStorage.removeItem('trainyy_gdrive_token_expires')
+      token = await requestToken('')
       return fetchWithAuth(url, options, true)
     }
 
@@ -119,12 +141,13 @@ export function useGoogleDrive() {
     isLoading.value = true
     statusMessage.value = 'Menghubungkan ke Akun Google...'
     try {
-      await requestToken()
+      await requestToken('select_account')
       statusMessage.value = 'Akun Google berhasil terhubung!'
       return { success: true }
     } catch (err) {
-      statusMessage.value = `Gagal menghubungkan: ${err.message}`
-      return { success: false, error: err.message }
+      const errMsg = err.message || 'Gagal menghubungkan Akun Google.'
+      statusMessage.value = errMsg
+      return { success: false, error: errMsg }
     } finally {
       isLoading.value = false
     }
@@ -133,12 +156,19 @@ export function useGoogleDrive() {
   // Disconnect Google Account
   const disconnect = () => {
     if (accessToken.value && window.google?.accounts?.oauth2?.revoke) {
-      window.google.accounts.oauth2.revoke(accessToken.value, () => {})
+      try {
+        window.google.accounts.oauth2.revoke(accessToken.value, () => {})
+      } catch (e) {}
     }
     accessToken.value = null
     userProfile.value = null
-    sessionStorage.removeItem('trainyy_gdrive_token')
+    linkedSheetId.value = null
+    lastBackupTime.value = null
+    localStorage.removeItem('trainyy_gdrive_token')
+    localStorage.removeItem('trainyy_gdrive_token_expires')
     localStorage.removeItem('trainyy_gdrive_user')
+    localStorage.removeItem('trainyy_linked_sheet_id')
+    localStorage.removeItem('trainyy_gdrive_last_backup')
     statusMessage.value = 'Akun Google telah diputuskan.'
   }
 
@@ -149,7 +179,8 @@ export function useGoogleDrive() {
       `https://www.googleapis.com/drive/v3/files?q=${q}&fields=files(id,name,modifiedTime)`
     )
     if (!res.ok) {
-      throw new Error('Gagal memeriksa file backup di Google Drive.')
+      const errJson = await res.json().catch(() => ({}))
+      throw new Error(errJson.error?.message || 'Gagal memeriksa file backup di Google Drive.')
     }
     const data = await res.json()
     if (data.files && data.files.length > 0) {
@@ -196,7 +227,10 @@ export function useGoogleDrive() {
             body: content
           }
         )
-        if (!updateRes.ok) throw new Error('Gagal memperbarui file cadangan di Google Drive.')
+        if (!updateRes.ok) {
+          const errData = await updateRes.json().catch(() => ({}))
+          throw new Error(errData.error?.message || 'Gagal memperbarui file cadangan di Google Drive.')
+        }
       } else {
         const metadata = {
           name: BACKUP_FILENAME,
@@ -227,13 +261,16 @@ export function useGoogleDrive() {
             body: multipartBody
           }
         )
-        if (!createRes.ok) throw new Error('Gagal membuat file cadangan di Google Drive.')
+        if (!createRes.ok) {
+          const errData = await createRes.json().catch(() => ({}))
+          throw new Error(errData.error?.message || 'Gagal membuat file cadangan di Google Drive.')
+        }
       }
 
       const nowIso = new Date().toISOString()
       lastBackupTime.value = nowIso
       localStorage.setItem('trainyy_gdrive_last_backup', nowIso)
-      statusMessage.value = 'Cadangan otomatis berhasil disimpan!'
+      statusMessage.value = 'Cadangan data berhasil disimpan ke Google Drive!'
       return { success: true }
     } catch (err) {
       statusMessage.value = `Gagal cadangkan: ${err.message}`
@@ -250,7 +287,7 @@ export function useGoogleDrive() {
     try {
       const fileId = await findBackupFileId()
       if (!fileId) {
-        throw new Error('Tidak ditemukan file cadangan (trainyy-backup.json) di Google Drive.')
+        throw new Error('Tidak ditemukan file cadangan (trainyy-backup.json) di Google Drive Anda.')
       }
 
       const res = await fetchWithAuth(
@@ -309,7 +346,6 @@ export function useGoogleDrive() {
 
   // Ensure or Auto-create Analytics Google Spreadsheet
   const ensureAnalyticsSheet = async () => {
-    // Jika sudah ada di local state, kembalikan langsung
     if (linkedSheetId.value) {
       return { success: true, sheetId: linkedSheetId.value }
     }
@@ -499,6 +535,6 @@ export function useGoogleDrive() {
     downloadDrivePdf,
     appendQuizToSheet,
     ensureAnalyticsSheet,
-    createAnalyticsSheet: ensureAnalyticsSheet // alias untuk kompatibilitas
+    createAnalyticsSheet: ensureAnalyticsSheet
   }
 }

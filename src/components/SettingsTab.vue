@@ -220,8 +220,9 @@ const updateQuizMode = (mode) => {
             :disabled="isLoading"
             class="py-2 px-3 rounded-xl bg-theme-primary hover:bg-theme-hover text-white font-semibold text-xs flex items-center justify-center gap-1.5 active-press cursor-pointer disabled:opacity-50"
           >
-            <Upload class="w-3.5 h-3.5" />
-            <span>Simpan Cadangan</span>
+            <Loader2 v-if="isLoading" class="w-3.5 h-3.5 animate-spin" />
+            <Upload v-else class="w-3.5 h-3.5" />
+            <span>{{ isLoading ? 'Menyimpan...' : 'Simpan Cadangan' }}</span>
           </button>
 
           <button
@@ -229,8 +230,9 @@ const updateQuizMode = (mode) => {
             :disabled="isLoading"
             class="py-2 px-3 rounded-xl bg-app-subtle hover:bg-app-border text-white font-semibold text-xs flex items-center justify-center gap-1.5 active-press cursor-pointer border border-app-border disabled:opacity-50"
           >
-            <Download class="w-3.5 h-3.5" />
-            <span>Ambil Cadangan</span>
+            <Loader2 v-if="isLoading" class="w-3.5 h-3.5 animate-spin" />
+            <Download v-else class="w-3.5 h-3.5" />
+            <span>{{ isLoading ? 'Memulihkan...' : 'Ambil Cadangan' }}</span>
           </button>
         </div>
       </div>

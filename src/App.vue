@@ -260,6 +260,27 @@ const triggerBackgroundDriveBackup = async () => {
   }
 }
 
+// Manual Drive Backup (triggered by user button click in Settings)
+const handleManualBackup = async () => {
+  try {
+    const fullData = {
+      version: '1.0',
+      exportedAt: new Date().toISOString(),
+      decks: await db.decks.toArray(),
+      questions: await db.questions.toArray(),
+      sessions: await db.sessions.toArray()
+    }
+    const res = await backupToDrive(fullData)
+    if (res?.success) {
+      alert('Cadangan data berhasil disimpan ke Google Drive Anda!')
+    } else {
+      alert(res?.error || 'Gagal menyimpan cadangan. Pastikan akun Google sudah terhubung dengan benar.')
+    }
+  } catch (err) {
+    alert('Gagal menyimpan cadangan: ' + err.message)
+  }
+}
+
 // Drive Restore
 const handleDriveRestore = async () => {
   const res = await restoreFromDrive()
@@ -379,7 +400,7 @@ onUnmounted(() => {
           :status-message="driveStatusMessage"
           @connect-google="handleConnectGoogle"
           @disconnect-google="disconnectGoogle"
-          @backup-drive="triggerBackgroundDriveBackup"
+          @backup-drive="handleManualBackup"
           @restore-drive="handleDriveRestore"
           @create-sheet="createAnalyticsSheet"
         />
