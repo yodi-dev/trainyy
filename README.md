@@ -76,6 +76,22 @@ npm run build
 
 ---
 
+## ☁️ Panduan Deploy ke Cloudflare Pages
+
+1. Masuk ke dashboard [Cloudflare Pages](https://dash.cloudflare.com/) lalu pilih **Compute (Workers & Pages)** > **Create application** > **Pages** > **Connect to Git**.
+2. Pilih repository GitHub: `yodi-dev/trainyy`.
+3. Pengaturan Build:
+   - **Framework preset**: `Vite`
+   - **Build command**: `npm run build`
+   - **Build output directory**: `dist`
+4. Di bagian **Environment variables (Variables and Secrets)**, tambahkan:
+   - `NODE_VERSION`: `22`
+   - `VITE_GOOGLE_CLIENT_ID`: `10475823948-6l2qk1g1313g4c8afujo6md17t51th20.apps.googleusercontent.com`
+   - `VITE_GEMINI_API_KEY`: *(Kunci AI Google Gemini Anda)*
+5. Klik **Save and Deploy**. Aplikasi PWA Trainyy akan langsung aktif di domain `*.pages.dev` dengan SSL otomatis dan Unlimited Bandwidth!
+
+---
+
 ## 📋 Dokumentasi & Versi
 
 Dokumentasi detail spesifikasi teknis dan riwayat versi tersedia di:
