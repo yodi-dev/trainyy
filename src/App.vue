@@ -199,6 +199,20 @@ const exitQuiz = () => {
 const handleMarkMastered = async (questionId) => {
   await db.questions.update(questionId, { isMastered: true })
   await loadLocalData()
+  if (isGoogleConnected.value && isOnline.value) {
+    triggerBackgroundDriveBackup()
+  }
+}
+
+// Connect Google and trigger initial auto-backup
+const handleConnectGoogle = async () => {
+  const res = await connectGoogle()
+  if (res?.success && isOnline.value) {
+    const totalDecks = await db.decks.count()
+    if (totalDecks > 0) {
+      triggerBackgroundDriveBackup()
+    }
+  }
 }
 
 // Delete Deck
@@ -278,10 +292,17 @@ const handleDownloadDrivePdf = async (fileId, callback) => {
   callback(res)
 }
 
-onMounted(() => {
-  loadLocalData()
+onMounted(async () => {
+  await loadLocalData()
   window.addEventListener('online', updateOnlineStatus)
   window.addEventListener('offline', updateOnlineStatus)
+
+  // Auto-backup in background if connected & online
+  if (isGoogleConnected.value && isOnline.value) {
+    setTimeout(() => {
+      triggerBackgroundDriveBackup()
+    }, 2000)
+  }
 })
 
 onUnmounted(() => {
@@ -348,7 +369,7 @@ onUnmounted(() => {
           :linked-sheet-id="linkedSheetId"
           :is-loading="isDriveLoading"
           :status-message="driveStatusMessage"
-          @connect-google="connectGoogle"
+          @connect-google="handleConnectGoogle"
           @disconnect-google="disconnectGoogle"
           @backup-drive="triggerBackgroundDriveBackup"
           @restore-drive="handleDriveRestore"

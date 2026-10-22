@@ -61,34 +61,85 @@ const totalAvailableQuestions = computed(() => {
 </script>
 
 <template>
-  <div class="space-y-6 pb-24">
-    <!-- Header Greeting & Connection Status -->
-    <div class="flex items-center justify-between pt-2">
-      <div>
-        <div class="flex items-center gap-1.5 text-xs font-medium text-indigo-400 uppercase tracking-wider">
-          <Zap class="w-3.5 h-3.5 fill-indigo-400" />
-          <span>Metode Belajar Cepat</span>
+  <div class="space-y-5 pb-24">
+    <!-- Top App Brand Bar -->
+    <div class="flex items-center justify-between pt-1 pb-1">
+      <div class="flex items-center gap-2.5">
+        <!-- Trainyy Monogram Logo -->
+        <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-indigo-500 to-violet-600 p-1.5 shadow-md shadow-indigo-950/40 flex items-center justify-center">
+          <svg class="w-full h-full text-white" viewBox="0 0 120 120" fill="none">
+            <rect x="26" y="24" width="68" height="13" rx="6.5" fill="#ffffff" />
+            <path d="M33 37 L54 65 L60 65 L43 37 Z" fill="#ffffff" opacity="0.95" />
+            <path d="M87 37 L66 65 L60 65 L77 37 Z" fill="#c4b5fd" />
+            <rect x="54" y="65" width="12" height="31" rx="6" fill="#ffffff" />
+            <circle cx="60" cy="65" r="4" fill="#38bdf8" />
+          </svg>
         </div>
-        <h1 class="text-xl font-bold text-white mt-0.5">
-          Hai, {{ userProfile?.name?.split(' ')[0] || 'Sobat Trainyy' }}
-        </h1>
+
+        <div>
+          <div class="flex items-center gap-1.5">
+            <span class="text-base font-black tracking-tight text-white leading-none">Trainyy</span>
+            <span class="px-1.5 py-0.5 rounded text-[9px] font-bold bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 leading-none">
+              Active Recall
+            </span>
+          </div>
+          <p class="text-[10px] text-app-muted font-medium mt-0.5">Asah Ingatan & Pemahaman</p>
+        </div>
       </div>
 
-      <!-- Offline / Online Badge -->
-      <div 
-        class="flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium border"
-        :class="[
-          isOnline 
-            ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30' 
-            : 'bg-amber-500/10 text-amber-400 border-amber-500/30'
-        ]"
-      >
-        <span 
-          class="w-2 h-2 rounded-full"
-          :class="isOnline ? 'bg-emerald-400 animate-pulse' : 'bg-amber-400'"
-        ></span>
-        <span>{{ isOnline ? 'Online' : 'Offline' }}</span>
+      <div class="flex items-center gap-2">
+        <!-- Offline / Online Badge -->
+        <div 
+          class="flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium border"
+          :class="[
+            isOnline 
+              ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30' 
+              : 'bg-amber-500/10 text-amber-400 border-amber-500/30'
+          ]"
+        >
+          <span 
+            class="w-2 h-2 rounded-full"
+            :class="isOnline ? 'bg-emerald-400 animate-pulse' : 'bg-amber-400'"
+          ></span>
+          <span>{{ isOnline ? 'Online' : 'Offline' }}</span>
+        </div>
+
+        <!-- User Profile Avatar thumbnail (if logged in) -->
+        <button
+          v-if="userProfile"
+          @click="emit('navigate', 'settings')"
+          class="cursor-pointer active-press rounded-full p-0.5 border border-indigo-500/40 hover:border-indigo-400 transition-colors"
+          title="Buka Pengaturan"
+        >
+          <img
+            v-if="userProfile.picture"
+            :src="userProfile.picture"
+            referrerpolicy="no-referrer"
+            alt="Profil"
+            class="w-7 h-7 rounded-full object-cover"
+          />
+          <div
+            v-else
+            class="w-7 h-7 rounded-full bg-indigo-600 flex items-center justify-center text-xs font-bold text-white"
+          >
+            {{ userProfile.name?.charAt(0) || 'U' }}
+          </div>
+        </button>
       </div>
+    </div>
+
+    <!-- Header Greeting -->
+    <div class="pt-1">
+      <div class="flex items-center gap-1.5 text-xs font-medium text-indigo-400 uppercase tracking-wider">
+        <Zap class="w-3.5 h-3.5 fill-indigo-400" />
+        <span>Latihan Ingatan Harian</span>
+      </div>
+      <h1 class="text-xl font-bold text-white mt-0.5">
+        Hai, {{ userProfile?.name?.split(' ')[0] || 'Sobat Trainyy' }}
+      </h1>
+      <p class="text-xs text-app-muted mt-0.5">
+        Siap menguji ingatan dan pemahamanmu hari ini?
+      </p>
     </div>
 
     <!-- Quick Play Hero Card (Primary CTA) -->

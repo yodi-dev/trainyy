@@ -40,9 +40,9 @@ const masteredQuestions = computed(() => {
   <div class="space-y-5 pb-24">
     <!-- Header -->
     <div class="flex items-center justify-between pt-2">
-      <div>
+      <div class="min-w-0 pr-2">
         <h1 class="text-xl font-bold text-white flex items-center gap-2">
-          <Target class="w-5 h-5 text-rose-400" />
+          <Target class="w-5 h-5 text-rose-400 shrink-0" />
           <span>Latihan Soal Salah</span>
         </h1>
         <p class="text-xs text-app-muted mt-0.5">
@@ -50,8 +50,26 @@ const masteredQuestions = computed(() => {
         </p>
       </div>
 
-      <div class="px-2.5 py-1 rounded-full bg-rose-500/10 border border-rose-500/30 text-rose-400 text-xs font-bold">
+      <div class="shrink-0 whitespace-nowrap px-2.5 py-1 rounded-full bg-rose-500/10 border border-rose-500/30 text-rose-400 text-xs font-bold">
         {{ remedialQuestions.length }} Perlu Diulang
+      </div>
+    </div>
+
+    <!-- Stats Bar: Ringkasan Status Soal -->
+    <div class="grid grid-cols-3 gap-2.5">
+      <div class="bg-app-card border border-rose-500/30 rounded-xl p-3 text-center">
+        <div class="text-lg font-bold text-rose-400">{{ remedialQuestions.length }}</div>
+        <div class="text-[10px] text-rose-300/90 font-medium mt-0.5">Perlu Diulang</div>
+      </div>
+
+      <div class="bg-app-card border border-emerald-500/30 rounded-xl p-3 text-center">
+        <div class="text-lg font-bold text-emerald-400">{{ masteredQuestions.length }}</div>
+        <div class="text-[10px] text-emerald-300/90 font-medium mt-0.5">Sudah Paham</div>
+      </div>
+
+      <div class="bg-app-card border border-app-border rounded-xl p-3 text-center">
+        <div class="text-lg font-bold text-white">{{ questions.length }}</div>
+        <div class="text-[10px] text-app-muted font-medium mt-0.5">Total Soal</div>
       </div>
     </div>
 
@@ -116,7 +134,7 @@ const masteredQuestions = computed(() => {
             class="flex items-start justify-between gap-2 cursor-pointer"
           >
             <div class="min-w-0">
-              <span class="inline-block px-1.5 py-0.2 rounded text-[10px] font-semibold bg-rose-500/15 text-rose-300 border border-rose-500/30 mb-1">
+              <span class="inline-block px-2 py-0.5 rounded text-[10px] font-semibold bg-rose-500/15 text-rose-300 border border-rose-500/30 mb-1">
                 Pernah Salah {{ q.timesIncorrect }}x
               </span>
               <p class="text-xs font-semibold text-white leading-relaxed">

@@ -58,6 +58,8 @@ const emit = defineEmits([
 
 const { themes, currentTheme, applyTheme } = useTheme()
 
+const imgError = ref(false)
+
 // AI Key State
 const apiKeyInput = ref(
   localStorage.getItem('trainyy_gemini_api_key') ||
@@ -132,33 +134,44 @@ const updateQuizMode = (mode) => {
       </div>
 
       <!-- User Profile (Connected) -->
-      <div v-if="isConnected" class="flex items-center justify-between p-3 rounded-xl bg-app-bg border border-app-border">
-        <div class="flex items-center gap-3 min-w-0">
-          <img
-            v-if="userProfile?.picture"
-            :src="userProfile.picture"
-            alt="Foto Profil"
-            class="w-9 h-9 rounded-full border border-indigo-500/40"
-          />
-          <div
-            v-else
-            class="w-9 h-9 rounded-full bg-indigo-600 flex items-center justify-center font-bold text-white text-sm"
+      <div v-if="isConnected" class="space-y-3">
+        <div class="flex items-center justify-between p-3 rounded-xl bg-app-bg border border-app-border">
+          <div class="flex items-center gap-3 min-w-0">
+            <img
+              v-if="userProfile?.picture && !imgError"
+              :src="userProfile.picture"
+              referrerpolicy="no-referrer"
+              alt="Foto Profil"
+              class="w-9 h-9 rounded-full border border-indigo-500/40 object-cover shrink-0"
+              @error="imgError = true"
+            />
+            <div
+              v-else
+              class="w-9 h-9 rounded-full bg-indigo-600 flex items-center justify-center font-bold text-white text-sm shrink-0 border border-indigo-400/40"
+            >
+              {{ userProfile?.name?.charAt(0) || 'U' }}
+            </div>
+            <div class="min-w-0">
+              <p class="text-xs font-bold text-white truncate">{{ userProfile?.name }}</p>
+              <p class="text-[11px] text-app-muted truncate">{{ userProfile?.email }}</p>
+            </div>
+          </div>
+
+          <button
+            @click="emit('disconnect-google')"
+            class="p-2 rounded-lg text-app-dim hover:text-rose-400 active-press cursor-pointer"
+            title="Keluar dari Akun"
           >
-            {{ userProfile?.name?.charAt(0) || 'U' }}
-          </div>
-          <div class="min-w-0">
-            <p class="text-xs font-bold text-white truncate">{{ userProfile?.name }}</p>
-            <p class="text-[11px] text-app-muted truncate">{{ userProfile?.email }}</p>
-          </div>
+            <LogOut class="w-4 h-4" />
+          </button>
         </div>
 
-        <button
-          @click="emit('disconnect-google')"
-          class="p-2 rounded-lg text-app-dim hover:text-rose-400 active-press cursor-pointer"
-          title="Keluar dari Akun"
-        >
-          <LogOut class="w-4 h-4" />
-        </button>
+        <!-- Indikator Cadangan Otomatis Aktif -->
+        <div class="flex items-center gap-2 p-2.5 rounded-xl bg-emerald-500/10 border border-emerald-500/25 text-emerald-300 text-xs">
+          <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse shrink-0"></span>
+          <span class="font-medium">Cadangan Otomatis Aktif</span>
+          <span class="text-[10px] text-app-muted ml-auto">Google Drive</span>
+        </div>
       </div>
 
       <!-- Connect Button (Not Connected) -->

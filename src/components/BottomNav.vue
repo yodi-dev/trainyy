@@ -60,7 +60,7 @@ const tabs = [
           <!-- Remedial Badge Counter -->
           <span
             v-if="tab.badge && remedialCount > 0"
-            class="absolute -top-1 -right-2.5 px-1.5 py-0.2 bg-rose-500 text-white text-[10px] font-bold rounded-full min-w-4 text-center shadow-xs"
+            class="absolute -top-1 -right-2.5 px-1.5 py-0.5 bg-rose-500 text-white text-[10px] font-bold rounded-full min-w-4 text-center shadow-xs leading-none"
           >
             {{ remedialCount > 99 ? '99+' : remedialCount }}
           </span>
