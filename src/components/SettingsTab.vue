@@ -127,13 +127,13 @@ const updateQuizMode = (mode) => {
          SECTION 1: GOOGLE ACCOUNT & DRIVE BACKUP
          ============================================== -->
     <div class="bg-app-card border border-app-border rounded-2xl p-4 space-y-3.5">
-      <div class="flex items-center justify-between">
-        <div class="flex items-center gap-2">
-          <Cloud class="w-5 h-5 text-theme-light" />
-          <h2 class="text-sm font-bold text-white">Akun Google & Cadangan Cloud</h2>
+      <div class="flex items-center justify-between gap-2">
+        <div class="flex items-center gap-2 min-w-0">
+          <Cloud class="w-5 h-5 text-theme-light shrink-0" />
+          <h2 class="text-sm font-bold text-white truncate">Akun Google & Cadangan</h2>
         </div>
         <span
-          class="text-[10px] font-bold px-2 py-0.5 rounded-full border"
+          class="shrink-0 whitespace-nowrap text-[10px] font-bold px-2 py-0.5 rounded-full border leading-none"
           :class="[
             isConnected
               ? 'bg-emerald-500/15 text-emerald-400 border-emerald-500/30'
@@ -240,14 +240,14 @@ const updateQuizMode = (mode) => {
          SECTION 2: GOOGLE SHEETS RAPOR BELAJAR
          ============================================== -->
     <div class="bg-app-card border border-app-border rounded-2xl p-4 space-y-3">
-      <div class="flex items-center justify-between">
-        <div class="flex items-center gap-2">
-          <FileSpreadsheet class="w-5 h-5 text-emerald-400" />
-          <h2 class="text-sm font-bold text-white">Rapor Belajar Otomatis (Spreadsheet)</h2>
+      <div class="flex items-center justify-between gap-2">
+        <div class="flex items-center gap-2 min-w-0">
+          <FileSpreadsheet class="w-5 h-5 text-emerald-400 shrink-0" />
+          <h2 class="text-sm font-bold text-white truncate">Rapor Belajar Otomatis</h2>
         </div>
         <span
           v-if="isConnected && linkedSheetId"
-          class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-400 border border-emerald-500/30"
+          class="shrink-0 whitespace-nowrap text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 leading-none"
         >
           Tersambung Otomatis
         </span>
@@ -259,17 +259,17 @@ const updateQuizMode = (mode) => {
 
       <div v-if="isConnected" class="space-y-2.5">
         <!-- Connected to spreadsheet -->
-        <div v-if="linkedSheetId" class="p-3 rounded-xl bg-app-bg border border-app-border flex items-center justify-between text-xs">
-          <div>
-            <p class="font-bold text-white">Trainyy - Rekap Analitik Belajar</p>
-            <p class="text-[10px] text-emerald-400 mt-0.5">Tersinkron di Google Drive Anda</p>
+        <div v-if="linkedSheetId" class="p-3 rounded-xl bg-app-bg border border-app-border flex items-center justify-between gap-2 text-xs">
+          <div class="min-w-0">
+            <p class="font-bold text-white truncate">Trainyy - Rekap Analitik Belajar</p>
+            <p class="text-[10px] text-emerald-400 mt-0.5 truncate">Tersinkron di Google Drive Anda</p>
           </div>
 
           <a
             :href="`https://docs.google.com/spreadsheets/d/${linkedSheetId}`"
             target="_blank"
             rel="noopener noreferrer"
-            class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-semibold active-press"
+            class="shrink-0 whitespace-nowrap flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-semibold active-press"
           >
             <ExternalLink class="w-3.5 h-3.5" />
             <span>Buka Spreadsheet</span>
@@ -299,13 +299,13 @@ const updateQuizMode = (mode) => {
          SECTION 3: AI PEMBUAT SOAL
          ============================================== -->
     <div class="bg-app-card border border-app-border rounded-2xl p-4 space-y-3">
-      <div class="flex items-center justify-between">
-        <div class="flex items-center gap-2">
-          <Sparkles class="w-5 h-5 text-amber-400" />
-          <h2 class="text-sm font-bold text-white">Fitur AI Pembuat Soal</h2>
+      <div class="flex items-center justify-between gap-2">
+        <div class="flex items-center gap-2 min-w-0">
+          <Sparkles class="w-5 h-5 text-amber-400 shrink-0" />
+          <h2 class="text-sm font-bold text-white truncate">Fitur AI Pembuat Soal</h2>
         </div>
         <span
-          class="text-[10px] font-bold px-2 py-0.5 rounded-full border"
+          class="shrink-0 whitespace-nowrap text-[10px] font-bold px-2 py-0.5 rounded-full border leading-none"
           :class="[
             hasActiveKey
               ? 'bg-emerald-500/15 text-emerald-400 border-emerald-500/30'
