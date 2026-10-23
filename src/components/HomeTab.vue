@@ -1,5 +1,5 @@
 <script setup>
-import { computed } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 import { 
   Play, 
   RotateCcw, 
@@ -9,7 +9,11 @@ import {
   CheckCircle2, 
   Plus, 
   Award,
-  ChevronRight
+  ChevronRight,
+  Lightbulb,
+  Sparkles,
+  Shuffle,
+  Check
 } from '@lucide/vue'
 
 const props = defineProps({
@@ -18,6 +22,10 @@ const props = defineProps({
     default: () => []
   },
   sessions: {
+    type: Array,
+    default: () => []
+  },
+  questions: {
     type: Array,
     default: () => []
   },
@@ -62,6 +70,53 @@ const recentSessions = computed(() => {
 const totalAvailableQuestions = computed(() => {
   return props.decks.reduce((acc, d) => acc + (d.totalQuestions || 0), 0)
 })
+
+// ==============================================
+// LOGIKA KARTU TRIVIA (FLASHCARD)
+// ==============================================
+const isFlipped = ref(false)
+const currentTriviaIndex = ref(0)
+
+const getDeckTitle = (deckId) => {
+  const d = props.decks.find((deck) => deck.id === deckId)
+  return d ? d.title : 'Materi Belajar'
+}
+
+const currentTrivia = computed(() => {
+  if (!props.questions || props.questions.length === 0) return null
+  return props.questions[currentTriviaIndex.value % props.questions.length]
+})
+
+const shuffleTrivia = () => {
+  if (!props.questions || props.questions.length <= 1) {
+    isFlipped.value = false
+    return
+  }
+  isFlipped.value = false
+  let nextIdx
+  do {
+    nextIdx = Math.floor(Math.random() * props.questions.length)
+  } while (nextIdx === currentTriviaIndex.value && props.questions.length > 1)
+
+  setTimeout(() => {
+    currentTriviaIndex.value = nextIdx
+  }, 150)
+}
+
+onMounted(() => {
+  if (props.questions && props.questions.length > 0) {
+    currentTriviaIndex.value = Math.floor(Math.random() * props.questions.length)
+  }
+})
+
+watch(
+  () => props.questions.length,
+  (newLen) => {
+    if (newLen > 0 && currentTriviaIndex.value === 0) {
+      currentTriviaIndex.value = Math.floor(Math.random() * newLen)
+    }
+  }
+)
 </script>
 
 <template>
@@ -199,6 +254,112 @@ const totalAvailableQuestions = computed(() => {
         </div>
         <div class="text-lg font-bold text-white">{{ remedialQuestions.length }}</div>
         <div class="text-[10px] text-rose-400/90 font-medium">Perlu Diulang</div>
+      </div>
+    </div>
+
+    <!-- ==============================================
+         SECTION: KARTU TRIVIA & FAKTA KILAT (FLASHCARD)
+         ============================================== -->
+    <div v-if="questions.length > 0" class="space-y-2.5">
+      <div class="flex items-center justify-between">
+        <h2 class="text-sm font-bold text-white uppercase tracking-wider flex items-center gap-2">
+          <Lightbulb class="w-4 h-4 text-amber-400" />
+          <span>Fakta Kilat (Trivia)</span>
+        </h2>
+        <button
+          @click.stop="shuffleTrivia"
+          class="inline-flex items-center gap-1.5 text-xs font-semibold text-theme-light hover:text-white active-press cursor-pointer"
+          title="Acak Trivia Baru"
+        >
+          <Shuffle class="w-3.5 h-3.5" />
+          <span>Acak Baru</span>
+        </button>
+      </div>
+
+      <!-- 3D Flippable Card Container -->
+      <div class="perspective-1000 w-full min-h-[190px] select-none">
+        <div
+          @click="isFlipped = !isFlipped"
+          class="relative w-full min-h-[190px] rounded-2xl transform-style-3d transition-transform-500 cursor-pointer shadow-md"
+          :class="{ 'rotate-y-180': isFlipped }"
+        >
+          <!-- SISI DEPAN (PERTANYAAN / KONSEP KUNCI) -->
+          <div
+            class="absolute inset-0 w-full h-full backface-hidden rounded-2xl p-4 sm:p-5 bg-app-card border border-app-border hover:border-theme-border transition-colors flex flex-col justify-between"
+          >
+            <!-- Header Kartu Depan -->
+            <div class="flex items-center justify-between text-xs">
+              <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-amber-500/15 text-amber-300 border border-amber-500/30">
+                <Sparkles class="w-3 h-3 text-amber-400" />
+                <span>Tahukah Kamu?</span>
+              </span>
+              <span class="text-[10px] text-app-dim truncate max-w-[140px] font-medium">
+                {{ getDeckTitle(currentTrivia?.deckId) }}
+              </span>
+            </div>
+
+            <!-- Pertanyaan / Topik Konsep -->
+            <div class="py-2.5">
+              <p class="text-sm sm:text-base font-bold text-white leading-relaxed line-clamp-3">
+                {{ currentTrivia?.question }}
+              </p>
+            </div>
+
+            <!-- Petunjuk Balik Kartu -->
+            <div class="flex items-center justify-between text-[11px] text-app-dim pt-2 border-t border-app-border/50">
+              <span class="flex items-center gap-1.5 text-theme-light font-medium">
+                <RotateCcw class="w-3 h-3" />
+                <span>Ketuk kartu untuk melihat intisari jawaban</span>
+              </span>
+              <span class="text-[10px] shrink-0 font-mono">{{ (currentTriviaIndex % questions.length) + 1 }}/{{ questions.length }}</span>
+            </div>
+          </div>
+
+          <!-- SISI BELAKANG (INTISARI JAWABAN & PENJELASAN) -->
+          <div
+            class="absolute inset-0 w-full h-full backface-hidden rotate-y-180 rounded-2xl p-4 sm:p-5 bg-app-surface border border-theme-border shadow-theme-glow flex flex-col justify-between"
+          >
+            <!-- Header Kartu Belakang -->
+            <div class="flex items-center justify-between text-xs">
+              <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/15 text-emerald-300 border border-emerald-500/30">
+                <Check class="w-3 h-3 text-emerald-400" />
+                <span>Intisari Konsep</span>
+              </span>
+              <span class="text-[10px] text-app-dim truncate max-w-[140px] font-medium">
+                {{ getDeckTitle(currentTrivia?.deckId) }}
+              </span>
+            </div>
+
+            <!-- Jawaban Benar & Penjelasan -->
+            <div class="py-2 space-y-1.5 overflow-y-auto max-h-[95px] pr-1">
+              <p class="text-xs font-bold text-emerald-400 leading-snug">
+                Poin Kunci: {{ currentTrivia?.options[currentTrivia?.correctIndex] }}
+              </p>
+              <p class="text-xs text-app-text/90 leading-relaxed font-normal">
+                {{ currentTrivia?.explanation }}
+              </p>
+            </div>
+
+            <!-- Tombol Aksi di Kartu Belakang -->
+            <div class="flex items-center justify-between text-[11px] pt-2 border-t border-app-border/60">
+              <button
+                @click.stop="isFlipped = false"
+                class="text-app-dim hover:text-white flex items-center gap-1 active-press cursor-pointer"
+              >
+                <RotateCcw class="w-3 h-3" />
+                <span>Tutup Jawaban</span>
+              </button>
+
+              <button
+                @click.stop="shuffleTrivia"
+                class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-theme-primary hover:bg-theme-hover text-white font-semibold text-[11px] shadow-xs active-press cursor-pointer"
+              >
+                <Shuffle class="w-3 h-3" />
+                <span>Fakta Lain</span>
+              </button>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
 

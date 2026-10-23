@@ -362,6 +362,7 @@ onUnmounted(() => {
           v-if="currentTab === 'home'"
           :decks="decks"
           :sessions="sessions"
+          :questions="questions"
           :remedial-questions="remedialQuestions"
           :user-profile="userProfile"
           :is-online="isOnline"
