@@ -240,3 +240,26 @@
 .transition-transform-500 {
   transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
 }
+
+/* Accessible Focus Indicators (WCAG 2.4.7) */
+:where(button, [role="button"], a, input, select, textarea):focus-visible {
+  outline: 2px solid var(--primary-light, #818cf8);
+  outline-offset: 2px;
+}
+
+/* Custom subtle scrollbar */
+.scrollbar-thin {
+  scrollbar-width: thin;
+  scrollbar-color: var(--border-subtle) transparent;
+}
+.scrollbar-thin::-webkit-scrollbar {
+  width: 4px;
+}
+.scrollbar-thin::-webkit-scrollbar-track {
+  background: transparent;
+}
+.scrollbar-thin::-webkit-scrollbar-thumb {
+  background: var(--border-subtle);
+  border-radius: 4px;
+}
+

@@ -201,74 +201,60 @@ watch(
       </p>
     </div>
 
-    <!-- Primary Action Hero: Start 10-Question Quick Quiz -->
-    <div class="relative overflow-hidden rounded-2xl bg-theme-gradient p-5 shadow-theme-glow">
-      <div class="relative z-10 space-y-4">
-        <div>
-          <span class="inline-block px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-white/20 text-white backdrop-blur-xs mb-2">
-            Kuis Kilat Active Recall
-          </span>
-          <h2 class="text-lg font-black text-white leading-tight">
-            Tantang Ingatanmu Sekarang
-          </h2>
-          <p class="text-xs text-white/90 mt-1">
-            10 pertanyaan acak dari materi tersimpan untuk menguji dan memperkuat ingatanmu.
-          </p>
-        </div>
-
-        <button
-          @click="emit('start-quick-quiz')"
-          :disabled="totalAvailableQuestions === 0"
-          class="w-full flex items-center justify-center gap-2 py-3 px-4 rounded-xl bg-white text-slate-950 font-bold text-sm shadow-md active-press hover:bg-slate-100 transition-colors disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
-        >
-          <Play class="w-4 h-4 fill-slate-950" />
-          <span>{{ totalAvailableQuestions > 0 ? 'Mulai Kuis 10 Soal' : 'Belum Ada Materi Tersedia' }}</span>
-        </button>
-      </div>
-    </div>
-
-    <!-- Stats Bar -->
-    <div class="grid grid-cols-3 gap-2.5">
-      <div class="bg-app-card border border-app-border rounded-xl p-3 text-center">
+    <!-- ==============================================
+         SECTION 1: STATISTIK RINGKASAN PROGRES
+         ============================================== -->
+    <div class="grid grid-cols-3 gap-2.5" role="region" aria-label="Statistik Belajar">
+      <!-- Total Soal Dikerjakan -->
+      <div class="bg-app-card border border-app-border rounded-xl p-3 text-center flex flex-col items-center justify-center">
         <div class="flex items-center justify-center text-theme-light mb-1">
           <CheckCircle2 class="w-4 h-4" />
         </div>
-        <div class="text-lg font-bold text-white">{{ totalQuestionsAnswered }}</div>
-        <div class="text-[10px] text-app-muted">Soal Dikerjakan</div>
+        <div class="text-lg font-bold text-white leading-tight">{{ totalQuestionsAnswered }}</div>
+        <div class="text-[10px] text-app-muted mt-0.5">Soal Dikerjakan</div>
       </div>
 
-      <div class="bg-app-card border border-app-border rounded-xl p-3 text-center">
+      <!-- Nilai Rata-rata -->
+      <div class="bg-app-card border border-app-border rounded-xl p-3 text-center flex flex-col items-center justify-center">
         <div class="flex items-center justify-center text-emerald-400 mb-1">
           <Award class="w-4 h-4" />
         </div>
-        <div class="text-lg font-bold text-white">{{ averageScore }}%</div>
-        <div class="text-[10px] text-app-muted">Nilai Rata-rata</div>
+        <div class="text-lg font-bold text-white leading-tight">{{ averageScore }}%</div>
+        <div class="text-[10px] text-app-muted mt-0.5">Nilai Rata-rata</div>
       </div>
 
-      <div 
+      <!-- Perlu Diulang (Remedial CTA Button) -->
+      <button 
+        type="button"
         @click="emit('navigate', 'remedial')"
-        class="bg-app-card border border-app-border rounded-xl p-3 text-center active-press cursor-pointer hover:border-rose-500/40 transition-colors"
+        class="bg-app-card border border-app-border rounded-xl p-3 text-center active-press cursor-pointer hover:border-rose-500/40 transition-colors flex flex-col items-center justify-center relative group"
+        aria-label="Lihat soal yang perlu diulang"
       >
         <div class="flex items-center justify-center text-rose-400 mb-1">
-          <RotateCcw class="w-4 h-4" />
+          <RotateCcw class="w-4 h-4 transition-transform group-hover:-rotate-45" />
         </div>
-        <div class="text-lg font-bold text-white">{{ remedialQuestions.length }}</div>
-        <div class="text-[10px] text-rose-400/90 font-medium">Perlu Diulang</div>
-      </div>
+        <div class="text-lg font-bold text-white leading-tight">{{ remedialQuestions.length }}</div>
+        <div class="text-[10px] text-rose-400/90 font-medium mt-0.5 flex items-center justify-center gap-0.5">
+          <span>Perlu Diulang</span>
+          <ChevronRight v-if="remedialQuestions.length > 0" class="w-3 h-3 text-rose-400" />
+        </div>
+      </button>
     </div>
 
     <!-- ==============================================
-         SECTION: KARTU TRIVIA & FAKTA KILAT (FLASHCARD)
+         SECTION 2: KARTU TRIVIA & FAKTA KILAT (FLASHCARD)
          ============================================== -->
-    <div v-if="questions.length > 0" class="space-y-2.5">
+    <div class="space-y-2.5">
       <div class="flex items-center justify-between">
         <h2 class="text-sm font-bold text-white uppercase tracking-wider flex items-center gap-2">
           <Lightbulb class="w-4 h-4 text-amber-400" />
           <span>Fakta Kilat (Trivia)</span>
         </h2>
         <button
+          v-if="questions.length > 1"
+          type="button"
           @click.stop="shuffleTrivia"
-          class="inline-flex items-center gap-1.5 text-xs font-semibold text-theme-light hover:text-white active-press cursor-pointer"
+          class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-theme-soft/60 hover:bg-theme-soft border border-theme-border/50 text-xs font-semibold text-theme-light hover:text-white active-press cursor-pointer transition-colors"
           title="Acak Trivia Baru"
         >
           <Shuffle class="w-3.5 h-3.5" />
@@ -276,11 +262,17 @@ watch(
         </button>
       </div>
 
-      <!-- 3D Flippable Card Container -->
-      <div class="perspective-1000 w-full min-h-[190px] select-none">
+      <!-- If questions exist: 3D Flippable Card -->
+      <div v-if="questions.length > 0" class="perspective-1000 w-full min-h-[195px] select-none">
         <div
+          role="region"
+          tabindex="0"
+          :aria-expanded="isFlipped"
+          aria-label="Kartu fakta kilat, ketuk atau tekan Enter/Spasi untuk membalik"
           @click="isFlipped = !isFlipped"
-          class="relative w-full min-h-[190px] rounded-2xl transform-style-3d transition-transform-500 cursor-pointer shadow-md"
+          @keydown.enter.self="isFlipped = !isFlipped"
+          @keydown.space.self.prevent="isFlipped = !isFlipped"
+          class="relative w-full min-h-[195px] rounded-2xl transform-style-3d transition-transform-500 cursor-pointer shadow-md focus-visible:ring-2 focus-visible:ring-theme-primary focus-visible:outline-hidden"
           :class="{ 'rotate-y-180': isFlipped }"
         >
           <!-- SISI DEPAN (PERTANYAAN / KONSEP KUNCI) -->
@@ -293,7 +285,7 @@ watch(
                 <Sparkles class="w-3 h-3 text-amber-400" />
                 <span>Tahukah Kamu?</span>
               </span>
-              <span class="text-[10px] text-app-dim truncate max-w-[140px] font-medium">
+              <span class="text-[10px] text-app-muted truncate max-w-[150px] font-medium">
                 {{ getDeckTitle(currentTrivia?.deckId) }}
               </span>
             </div>
@@ -306,9 +298,9 @@ watch(
             </div>
 
             <!-- Petunjuk Balik Kartu -->
-            <div class="flex items-center justify-between text-[11px] text-app-dim pt-2 border-t border-app-border/50">
+            <div class="flex items-center justify-between text-[11px] text-app-muted pt-2 border-t border-app-border/50">
               <span class="flex items-center gap-1.5 text-theme-light font-medium">
-                <RotateCcw class="w-3 h-3" />
+                <RotateCcw class="w-3.5 h-3.5" />
                 <span>Ketuk kartu untuk melihat intisari jawaban</span>
               </span>
               <span class="text-[10px] shrink-0 font-mono">{{ (currentTriviaIndex % questions.length) + 1 }}/{{ questions.length }}</span>
@@ -325,16 +317,17 @@ watch(
                 <Check class="w-3 h-3 text-emerald-400" />
                 <span>Intisari Konsep</span>
               </span>
-              <span class="text-[10px] text-app-dim truncate max-w-[140px] font-medium">
+              <span class="text-[10px] text-app-muted truncate max-w-[150px] font-medium">
                 {{ getDeckTitle(currentTrivia?.deckId) }}
               </span>
             </div>
 
             <!-- Jawaban Benar & Penjelasan -->
-            <div class="py-2 space-y-1.5 overflow-y-auto max-h-[95px] pr-1">
-              <p class="text-xs font-bold text-emerald-400 leading-snug">
-                Poin Kunci: {{ currentTrivia?.options[currentTrivia?.correctIndex] }}
-              </p>
+            <div class="py-2 space-y-1.5 overflow-y-auto max-h-[105px] pr-1.5 scrollbar-thin text-left">
+              <div class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-300 border border-emerald-500/20 text-xs font-semibold">
+                <Check class="w-3 h-3 text-emerald-400 shrink-0" />
+                <span class="truncate">Kunci: {{ currentTrivia?.options[currentTrivia?.correctIndex] }}</span>
+              </div>
               <p class="text-xs text-app-text/90 leading-relaxed font-normal">
                 {{ currentTrivia?.explanation }}
               </p>
@@ -343,16 +336,18 @@ watch(
             <!-- Tombol Aksi di Kartu Belakang -->
             <div class="flex items-center justify-between text-[11px] pt-2 border-t border-app-border/60">
               <button
+                type="button"
                 @click.stop="isFlipped = false"
-                class="text-app-dim hover:text-white flex items-center gap-1 active-press cursor-pointer"
+                class="text-app-muted hover:text-white flex items-center gap-1 active-press cursor-pointer py-1 px-2 rounded-lg hover:bg-app-card/60"
               >
                 <RotateCcw class="w-3 h-3" />
                 <span>Tutup Jawaban</span>
               </button>
 
               <button
+                type="button"
                 @click.stop="shuffleTrivia"
-                class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-theme-primary hover:bg-theme-hover text-white font-semibold text-[11px] shadow-xs active-press cursor-pointer"
+                class="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-theme-primary hover:bg-theme-hover text-white font-semibold text-xs shadow-xs active-press cursor-pointer"
               >
                 <Shuffle class="w-3 h-3" />
                 <span>Fakta Lain</span>
@@ -360,6 +355,71 @@ watch(
             </div>
           </div>
         </div>
+      </div>
+
+      <!-- Empty State for Trivia if 0 questions -->
+      <div
+        v-else
+        class="bg-app-card border border-app-border/70 rounded-2xl p-5 text-center space-y-3"
+      >
+        <div class="w-10 h-10 mx-auto rounded-full bg-amber-500/10 text-amber-400 flex items-center justify-center border border-amber-500/20">
+          <Lightbulb class="w-5 h-5" />
+        </div>
+        <div>
+          <h3 class="text-sm font-bold text-white">Kartu Trivia Belum Aktif</h3>
+          <p class="text-xs text-app-muted mt-1 max-w-xs mx-auto">
+            Tambah materi belajarmu untuk mengaktifkan kartu fakta kilat dan latihan active recall harian.
+          </p>
+        </div>
+        <button
+          type="button"
+          @click="emit('open-new-deck-modal')"
+          class="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-theme-primary hover:bg-theme-hover text-white text-xs font-semibold active-press cursor-pointer shadow-xs"
+        >
+          <Plus class="w-3.5 h-3.5" />
+          <span>Tambah Materi Sekarang</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- ==============================================
+         SECTION 3: PRIMARY ACTION HERO (MULAI KUIS)
+         ============================================== -->
+    <div class="relative overflow-hidden rounded-2xl bg-theme-gradient p-5 shadow-theme-glow">
+      <div class="relative z-10 space-y-4">
+        <div>
+          <span class="inline-block px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-white/20 text-white backdrop-blur-xs mb-2">
+            Kuis Kilat Active Recall
+          </span>
+          <h2 class="text-lg font-black text-white leading-tight">
+            Tantang Ingatanmu Sekarang
+          </h2>
+          <p class="text-xs text-white/90 mt-1">
+            {{ totalAvailableQuestions > 0 
+              ? `10 pertanyaan acak dari total ${totalAvailableQuestions} soal tersimpan untuk menguji dan memperkuat ingatanmu.`
+              : 'Unggah catatan atau materi PDF untuk membuat paket soal kuis secara instan.' 
+            }}
+          </p>
+        </div>
+
+        <button
+          v-if="totalAvailableQuestions > 0"
+          type="button"
+          @click="emit('start-quick-quiz')"
+          class="w-full flex items-center justify-center gap-2 py-3 px-4 rounded-xl bg-white text-slate-950 font-bold text-sm shadow-md active-press hover:bg-slate-100 transition-colors cursor-pointer"
+        >
+          <Play class="w-4 h-4 fill-slate-950" />
+          <span>Mulai Kuis 10 Soal</span>
+        </button>
+        <button
+          v-else
+          type="button"
+          @click="emit('open-new-deck-modal')"
+          class="w-full flex items-center justify-center gap-2 py-3 px-4 rounded-xl bg-white text-slate-950 font-bold text-sm shadow-md active-press hover:bg-slate-100 transition-colors cursor-pointer"
+        >
+          <Plus class="w-4 h-4 text-slate-950" />
+          <span>Tambah Materi Belajar Pertama</span>
+        </button>
       </div>
     </div>
 
