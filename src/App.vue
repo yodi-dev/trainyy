@@ -84,7 +84,10 @@ const startQuickQuiz = () => {
   const shuffledRest = rest.sort(() => 0.5 - Math.random())
 
   const selected = [...shuffledIncorrect, ...shuffledRest].slice(0, 10)
-  const defaultMode = localStorage.getItem('trainyy_quiz_mode') || 'study'
+  const defaultMode =
+    localStorage.getItem('trainyy_default_mode') ||
+    localStorage.getItem('trainyy_quiz_mode') ||
+    'study'
 
   activeQuiz.value = {
     questions: selected,
@@ -100,7 +103,10 @@ const startDeckQuiz = (deck) => {
   if (deckQuestions.length === 0) return
 
   const shuffled = [...deckQuestions].sort(() => 0.5 - Math.random()).slice(0, 10)
-  const defaultMode = localStorage.getItem('trainyy_quiz_mode') || 'study'
+  const defaultMode =
+    localStorage.getItem('trainyy_default_mode') ||
+    localStorage.getItem('trainyy_quiz_mode') ||
+    'study'
 
   activeQuiz.value = {
     questions: shuffled,

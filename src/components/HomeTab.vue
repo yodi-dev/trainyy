@@ -68,7 +68,7 @@ const recentSessions = computed(() => {
 })
 
 const totalAvailableQuestions = computed(() => {
-  return props.decks.reduce((acc, d) => acc + (d.totalQuestions || 0), 0)
+  return props.questions && props.questions.length > 0 ? props.questions.length : props.decks.reduce((acc, d) => acc + (d.totalQuestions || 0), 0)
 })
 
 // ==============================================
