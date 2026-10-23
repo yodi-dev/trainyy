@@ -87,6 +87,44 @@ const currentTrivia = computed(() => {
   return props.questions[currentTriviaIndex.value % props.questions.length]
 })
 
+// Konversi data kuis menjadi informasi murni (bukan berbentuk kalimat tanya)
+const currentTriviaInfo = computed(() => {
+  if (!currentTrivia.value) return null
+  const item = currentTrivia.value
+
+  const correctOpt =
+    Array.isArray(item.options) && item.options[item.correctIndex]
+      ? String(item.options[item.correctIndex]).trim()
+      : ''
+
+  let rawExp = item.explanation ? String(item.explanation).trim() : ''
+
+  // Bersihkan awalan khas format soal kuis agar menjadi kalimat informasi murni
+  let cleanExp = rawExp
+    .replace(
+      /^(jawaban\s+(yang\s+)?(tepat|benar)\s+(adalah|ialah)?\s*([a-d]|pilihan\s+[a-d])?\s*(karena|yaitu|:)?\s*)/i,
+      ''
+    )
+    .replace(/^(pilihan\s+[a-d]\s+(tepat|benar)\s*(karena|yaitu|:)?\s*)/i, '')
+    .replace(/^(opsi\s+[a-d]\s+(tepat|benar)\s*(karena|yaitu|:)?\s*)/i, '')
+    .replace(/^(karena\s+)/i, '')
+    .trim()
+
+  if (cleanExp.length > 0) {
+    cleanExp = cleanExp.charAt(0).toUpperCase() + cleanExp.slice(1)
+  }
+
+  // Fallback jika explanation kosong
+  if (!cleanExp) {
+    cleanExp = correctOpt || 'Informasi materi pembelajaran ini tersimpan untuk memperkuat pemahaman konsep.'
+  }
+
+  return {
+    fact: cleanExp,
+    keyPoint: correctOpt
+  }
+})
+
 const shuffleTrivia = () => {
   if (!props.questions || props.questions.length <= 1) {
     isFlipped.value = false
@@ -275,7 +313,7 @@ watch(
           class="relative w-full min-h-[195px] rounded-2xl transform-style-3d transition-transform-500 cursor-pointer shadow-md focus-visible:ring-2 focus-visible:ring-theme-primary focus-visible:outline-hidden"
           :class="{ 'rotate-y-180': isFlipped }"
         >
-          <!-- SISI DEPAN (PERTANYAAN / KONSEP KUNCI) -->
+          <!-- SISI DEPAN (INFORMASI FAKTA KILAT) -->
           <div
             class="absolute inset-0 w-full h-full backface-hidden rounded-2xl p-4 sm:p-5 bg-app-card border border-app-border hover:border-theme-border transition-colors flex flex-col justify-between"
           >
@@ -290,10 +328,10 @@ watch(
               </span>
             </div>
 
-            <!-- Pertanyaan / Topik Konsep -->
+            <!-- Teks Informasi Fakta (Murni Informasi Edukatif) -->
             <div class="py-2.5">
-              <p class="text-sm sm:text-base font-bold text-white leading-relaxed line-clamp-3">
-                {{ currentTrivia?.question }}
+              <p class="text-sm sm:text-base font-semibold text-white leading-relaxed line-clamp-4">
+                {{ currentTriviaInfo?.fact }}
               </p>
             </div>
 
@@ -301,13 +339,13 @@ watch(
             <div class="flex items-center justify-between text-[11px] text-app-muted pt-2 border-t border-app-border/50">
               <span class="flex items-center gap-1.5 text-theme-light font-medium">
                 <RotateCcw class="w-3.5 h-3.5" />
-                <span>Ketuk kartu untuk melihat intisari jawaban</span>
+                <span>Ketuk kartu untuk melihat poin kunci</span>
               </span>
               <span class="text-[10px] shrink-0 font-mono">{{ (currentTriviaIndex % questions.length) + 1 }}/{{ questions.length }}</span>
             </div>
           </div>
 
-          <!-- SISI BELAKANG (INTISARI JAWABAN & PENJELASAN) -->
+          <!-- SISI BELAKANG (INTISARI KONSEP & POIN KUNCI) -->
           <div
             class="absolute inset-0 w-full h-full backface-hidden rotate-y-180 rounded-2xl p-4 sm:p-5 bg-app-surface border border-theme-border shadow-theme-glow flex flex-col justify-between"
           >
@@ -322,14 +360,14 @@ watch(
               </span>
             </div>
 
-            <!-- Jawaban Benar & Penjelasan -->
-            <div class="py-2 space-y-1.5 overflow-y-auto max-h-[105px] pr-1.5 scrollbar-thin text-left">
-              <div class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-300 border border-emerald-500/20 text-xs font-semibold">
-                <Check class="w-3 h-3 text-emerald-400 shrink-0" />
-                <span class="truncate">Kunci: {{ currentTrivia?.options[currentTrivia?.correctIndex] }}</span>
+            <!-- Poin Kunci & Ulasan Konteks -->
+            <div class="py-2 space-y-2 overflow-y-auto max-h-[105px] pr-1.5 scrollbar-thin text-left">
+              <div v-if="currentTriviaInfo?.keyPoint" class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-emerald-500/10 text-emerald-300 border border-emerald-500/25 text-xs font-bold">
+                <Check class="w-3.5 h-3.5 text-emerald-400 shrink-0" />
+                <span class="leading-tight">Poin Kunci: {{ currentTriviaInfo?.keyPoint }}</span>
               </div>
               <p class="text-xs text-app-text/90 leading-relaxed font-normal">
-                {{ currentTrivia?.explanation }}
+                {{ currentTriviaInfo?.fact }}
               </p>
             </div>
 
