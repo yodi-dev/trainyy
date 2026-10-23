@@ -8,6 +8,7 @@
 
 | Versi | Tanggal | Penulis | Ringkasan Perubahan Utama |
 | :---: | :---: | :---: | :--- |
+| **v1.1** | 24 Oktober 2026 | awanbeo.my.id & AI Assistant | **Refinement UX, Halaman Trivia & Keandalan Cadangan:**<br>1. **Tab Trivia Mandiri (Flashcard)**: Memindahkan kartu trivia ke halaman tersendiri (`TriviaTab.vue`) dengan filter materi, navigasi bolak-balik/acak, dan intisari konsep yang mendalam.<br>2. **Optimasi Beranda**: Menampilkan cuplikan materi ringkas (3 teratas) dengan navigasi "Lihat Semua Materi", menyederhanakan salam pengguna, dan menempatkan badge *Active Recall* presisi di bawah logo Trainyy.<br>3. **Peningkatan Keandalan Cloud & Offline**: Menambahkan opsi ekspor/impor cadangan offline (`.json`), memisahkan status loading per tombol pada Google Drive sync, dan memastikan background auto-backup tidak mengunci antarmuka.<br>4. **Pembaruan Identitas & Credit**: Memperbarui footer kredit ke `awanbeo.my.id` dan sinkronisasi versi aplikasi ke `v1.1.0`. |
 | **v1.0** | 22 Oktober 2026 | Yodi & AI Assistant | **Inisialisasi & Arsitektur MVP Trainyy:**<br>1. Branding resmi menjadi **Trainyy** (huruf *y* merupakan inisial Yodi).<br>2. Penetapan filosofi belajar berbasis *Active Recall* & *Testing Effect* (kuis pilihan ganda 10 soal per sesi).<br>3. Arsitektur **100% Google Ecosystem & Zero-Cost ($0)**: Google Identity Services (GIS), Google Drive API (Backup JSON & PDF Ingestion), Google Sheets API (Dashboard Analitik Otomatis), dan Google Gemini Flash API (AI Quiz Generator).<br>4. Arsitektur **Offline-First**: Local storage berbasis IndexedDB (Dexie.js) dan Service Worker PWA (`vite-plugin-pwa`) agar dapat dipakai di KRL, pesawat, atau tanpa sinyal.<br>5. Fitur **Document Ingestion**: Parser PDF langsung di browser via `pdfjs-dist` & input catatan teks bebas.<br>6. **Quiz Engine 10 Soal**: Evaluasi instan (Mode Belajar) dan Mode Simulasi, serta Ruang Soal Salah (pengulangan khusus soal yang pernah keliru).<br>7. **Design System & Visual Identity**: Mobile-first ergonomis (thumb-friendly), tema Dark Canvas modern dengan aksen Electric Indigo & Vibrant Emerald, serta logo monogram T-Y.<br>8. **Penyederhanaan Bahasa & Ramah Pengguna Awam**: Mengganti istilah teknis (Active Recall Mode, Deck, JSON Backup, Remedial) menjadi istilah alami (Metode Belajar Cepat, Materi Belajar, Cadangan Cloud, Soal Salah). |
 
 ---
@@ -48,11 +49,12 @@ Belajar bukan sekadar membaca ulang materi secara pasif (*passive reading*), mel
 ### 4. Ruang Lingkup Fitur (Feature Scope v1.0)
 
 #### 4.1. Shell Aplikasi Mobile-First (PWA Shell)
-- **Bottom Navigation Bar:**
-  - 🏠 **Beranda:** Kartu kuis kilat 10 soal, ringkasan sesi harian, materi yang sering dipelajari.
-  - 📚 **Bank Materi (Decks):** Daftar topik/deck, jumlah soal, dan tombol tambah materi baru.
-  - 🎯 **Ruang Remedial (Salah Belajar):** Kumpulan soal yang pernah dijawab salah untuk dilatih ulang sampai tuntas.
-  - ⚙️ **Pengaturan & Akun:** Status Google Drive, integrasi Google Sheets, Gemini API Key, dan preferensi tema.
+- **Bottom Navigation Bar (5 Tab):**
+  - 🏠 **Beranda:** Ringkasan statistik, tombol kuis kilat 10 soal, shortcut trivia kilat, dan cuplikan materi belajar.
+  - 💡 **Fakta Kilat (Trivia):** Halaman kartu *active recall* flashcard 3D mandiri, dilengkapi intisari konsep dan filter materi.
+  - 📚 **Bank Materi (Decks):** Daftar lengkap materi/deck, total soal, dan upload PDF/catatan teks.
+  - 🎯 **Ruang Soal Salah (Remedial):** Kumpulan soal yang pernah dijawab salah untuk dilatih ulang sampai tuntas.
+  - ⚙️ **Pengaturan & Akun:** Status Google Drive, cadangan offline JSON, buku rapor Google Sheets, Gemini AI Key, dan preferensi tema.
 - **Indikator Konektivitas:** Status *Offline/Online badge* yang responsif.
 - **PWA Service Worker:** Auto-cache aset aplikasi untuk akses instan tanpa jaringan.
 

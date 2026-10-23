@@ -35,7 +35,14 @@ export function useGoogleDrive() {
   const linkedSheetId = ref(
     localStorage.getItem('trainyy_linked_sheet_id') || null
   )
-  const isLoading = ref(false)
+  const isBackingUp = ref(false)
+  const isRestoring = ref(false)
+  const isConnecting = ref(false)
+  const isSyncingSheet = ref(false)
+  const isListingPdfs = ref(false)
+  const isLoading = computed(
+    () => isBackingUp.value || isRestoring.value || isConnecting.value || isSyncingSheet.value || isListingPdfs.value
+  )
   const statusMessage = ref('')
 
   const isConnected = computed(() => !!userProfile.value)
@@ -145,7 +152,7 @@ export function useGoogleDrive() {
 
   // Connect Google Account
   const connect = async () => {
-    isLoading.value = true
+    isConnecting.value = true
     statusMessage.value = 'Menghubungkan ke Akun Google...'
     try {
       await requestToken('select_account')
@@ -156,7 +163,7 @@ export function useGoogleDrive() {
       statusMessage.value = errMsg
       return { success: false, error: errMsg }
     } finally {
-      isLoading.value = false
+      isConnecting.value = false
     }
   }
 
@@ -221,9 +228,11 @@ export function useGoogleDrive() {
   }
 
   // Backup Data to Google Drive
-  const backup = async (fullData, interactive = false) => {
-    isLoading.value = true
-    statusMessage.value = 'Menyimpan cadangan ke Google Drive...'
+  const backup = async (fullData, interactive = false, isBackground = false) => {
+    if (!isBackground) {
+      isBackingUp.value = true
+      statusMessage.value = 'Menyimpan cadangan ke Google Drive...'
+    }
     try {
       const existingFileId = await findBackupFileId(interactive)
       const content = JSON.stringify(fullData, null, 2)
@@ -285,19 +294,25 @@ export function useGoogleDrive() {
       const nowIso = new Date().toISOString()
       lastBackupTime.value = nowIso
       localStorage.setItem('trainyy_gdrive_last_backup', nowIso)
-      statusMessage.value = 'Cadangan data berhasil disimpan ke Google Drive!'
+      if (!isBackground) {
+        statusMessage.value = 'Cadangan data berhasil disimpan ke Google Drive!'
+      }
       return { success: true }
     } catch (err) {
-      statusMessage.value = `Gagal cadangkan: ${err.message}`
+      if (!isBackground) {
+        statusMessage.value = `Gagal cadangkan: ${err.message}`
+      }
       return { success: false, error: err.message }
     } finally {
-      isLoading.value = false
+      if (!isBackground) {
+        isBackingUp.value = false
+      }
     }
   }
 
   // Restore Data from Google Drive
   const restore = async (interactive = true) => {
-    isLoading.value = true
+    isRestoring.value = true
     statusMessage.value = 'Mengambil cadangan dari Google Drive...'
     try {
       const fileId = await findBackupFileId(interactive)
@@ -320,13 +335,13 @@ export function useGoogleDrive() {
       statusMessage.value = `Gagal pulihkan: ${err.message}`
       return { success: false, error: err.message }
     } finally {
-      isLoading.value = false
+      isRestoring.value = false
     }
   }
 
   // List PDF files from Google Drive
   const listDrivePdfs = async () => {
-    isLoading.value = true
+    isListingPdfs.value = true
     statusMessage.value = 'Mencari file PDF di Google Drive...'
     try {
       const q = encodeURIComponent(`mimeType='application/pdf' and trashed=false`)
@@ -340,13 +355,13 @@ export function useGoogleDrive() {
     } catch (err) {
       return { success: false, error: err.message, files: [] }
     } finally {
-      isLoading.value = false
+      isListingPdfs.value = false
     }
   }
 
   // Download PDF file binary (ArrayBuffer) from Google Drive
   const downloadDrivePdf = async (fileId) => {
-    isLoading.value = true
+    isListingPdfs.value = true
     statusMessage.value = 'Mengunduh materi PDF dari Google Drive...'
     try {
       const res = await fetchWithAuth(
@@ -358,7 +373,7 @@ export function useGoogleDrive() {
     } catch (err) {
       return { success: false, error: err.message }
     } finally {
-      isLoading.value = false
+      isListingPdfs.value = false
     }
   }
 
@@ -368,7 +383,7 @@ export function useGoogleDrive() {
       return { success: true, sheetId: linkedSheetId.value }
     }
 
-    isLoading.value = true
+    isSyncingSheet.value = true
     statusMessage.value = 'Menyiapkan buku rapor Google Spreadsheet...'
 
     try {
@@ -487,7 +502,7 @@ export function useGoogleDrive() {
       statusMessage.value = `Gagal menyiapkan rapor: ${err.message}`
       return { success: false, error: err.message }
     } finally {
-      isLoading.value = false
+      isSyncingSheet.value = false
     }
   }
 
@@ -542,6 +557,10 @@ export function useGoogleDrive() {
     userProfile,
     lastBackupTime,
     linkedSheetId,
+    isBackingUp,
+    isRestoring,
+    isConnecting,
+    isSyncingSheet,
     isLoading,
     statusMessage,
     isConnected,

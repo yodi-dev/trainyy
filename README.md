@@ -2,7 +2,7 @@
 
 > **Aplikasi web pembelajaran personal berbasis *active recall* (kuis 10 soal per sesi), bekerja 100% offline, ditenagai Google Gemini AI untuk pembuatan bank soal otomatis dari PDF/teks, dan terintegrasi penuh dalam Ekosistem Google ($0 Zero-Cost).**
 
-[![Version](https://img.shields.io/badge/version-v1.0-6366f1.svg)](./PRD_v1.0.md)
+[![Version](https://img.shields.io/badge/version-v1.1-6366f1.svg)](./PRD_v1.0.md)
 [![Vue](https://img.shields.io/badge/Vue-3.5+-42b883.svg)](https://vuejs.org/)
 [![Vite](https://img.shields.io/badge/Vite-8+-646cff.svg)](https://vitejs.dev/)
 [![TailwindCSS](https://img.shields.io/badge/Tailwind-v4-38bdf8.svg)](https://tailwindcss.com/)
@@ -13,32 +13,35 @@
 
 ## 🎯 Filosofi & Latar Belakang
 
-Belajar yang efektif bukan sekadar membaca ulang (*passive reading*), melainkan menguji pemahaman secara berkala melalui pertanyaan (*active retrieval*). **Trainyy** (dengan inisial *y* dari nama pembuatnya, Yodi) hadir untuk memudahkan siapa saja belajar materi apa pun melalui kuis pilihan ganda 10 soal per sesi yang santai, terfokus, dan dapat diakses di mana saja—bahkan saat tidak ada sinyal internet.
+Belajar yang efektif bukan sekadar membaca ulang (*passive reading*), melainkan menguji pemahaman secara berkala melalui pertanyaan (*active retrieval*). **Trainyy** (dipersembahkan oleh [awanbeo.my.id](https://awanbeo.my.id)) hadir untuk memudahkan siapa saja belajar materi apa pun melalui kuis pilihan ganda 10 soal per sesi yang santai, terfokus, dan dapat diakses di mana saja—bahkan saat tidak ada sinyal internet.
 
 ---
 
-## ✨ Fitur Utama (v1.0)
+## ✨ Fitur Utama (v1.1)
 
 1. **📱 Mobile-First & Offline-Ready (PWA)**:
-   - Didesain khusus untuk navigasi satu tangan (ramah jempol) dengan *bottom navigation bar*.
+   - Didesain khusus untuk navigasi satu tangan (ramah jempol) dengan 5 tab *bottom navigation*.
    - Dapat diinstal ke layar utama ponsel (*Add to Home Screen*) tanpa perlu app store.
    - Bekerja penuh saat offline (di pesawat, KRL, atau area minim sinyal) berkat Service Worker dan IndexedDB (Dexie.js).
-2. **🤖 AI Quiz Generator (Google Gemini Flash)**:
+2. **💡 Halaman Fakta Kilat (Trivia Flashcard)**:
+   - Halaman khusus kartu flashcard interaktif 3D untuk meninjau intisari konsep dan fakta edukatif dari seluruh materi.
+   - Dilengkapi filter per topik materi serta tombol navigasi Sebelum, Sesudah, dan Acak Fakta.
+3. **🤖 AI Quiz Generator (Google Gemini Flash)**:
    - Otomatis membuat bank soal pilihan ganda berkualitas tinggi beserta kunci dan pembahasan mendalam langsung dari materi Anda.
    - Menggunakan Google Gemini API Free Tier (1.500 request/hari gratis via Google AI Studio).
-3. **📄 Document Ingestion (PDF & Catatan Teks)**:
+4. **📄 Document Ingestion (PDF & Catatan Teks)**:
    - Unggah dokumen PDF materi kuliah/kerja/sertifikasi dan sistem mengekstrak teksnya langsung di browser via `pdfjs-dist`.
    - Mendukung integrasi **Google Drive PDF Picker** untuk mengambil materi langsung dari Drive Anda.
-4. **🧠 Quiz Engine 10 Soal & Spaced Repetition**:
+5. **🧠 Quiz Engine 10 Soal & Spaced Repetition**:
    - Sesi micro-learning tepat 10 soal per putaran.
    - **Mode Belajar**: Feedback seketika (warna hijau/merah) begitu tombol jawaban ditekan, lengkap dengan kartu pembahasan.
    - **Mode Simulasi**: Pengerjaan berturut-turut tanpa jeda dengan rekapitulasi di akhir.
-5. **🎯 Ruang Remedial (Mistake Vault)**:
+6. **🎯 Ruang Remedial (Mistake Vault)**:
    - Melacak pertanyaan-pertanyaan yang pernah salah dijawab.
    - Fitur "Latih Ulang Soal Salah" untuk memperkuat ingatan hingga benar-benar paham.
-6. **☁️ 100% Ekosistem Google ($0 Zero-Cost)**:
-   - **Google Identity Services (GIS)**: Login 1-klik dengan akun Google Anda.
-   - **Google Drive Backup**: Seluruh deck materi, bank soal, dan riwayat tersimpan aman sebagai `trainyy-backup.json` di Google Drive pribadi Anda.
+7. **☁️ Pencadangan Lengkap: Google Drive Cloud & Offline JSON**:
+   - **Google Drive Backup**: Seluruh deck materi, bank soal, dan riwayat tersimpan aman dan tersinkronisasi otomatis di Google Drive pribadi Anda.
+   - **Cadangan Offline (.json)**: Ekspor dan impor berkas `.json` langsung dari memori perangkat kapan pun tanpa perlu login Google atau internet.
    - **Google Sheets Analytics**: Sesi kuis otomatis mencatat riwayat nilai ke Google Spreadsheet pribadi untuk visualisasi analitik dan grafik perkembangan.
 
 ---

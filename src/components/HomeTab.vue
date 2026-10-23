@@ -71,148 +71,13 @@ const totalAvailableQuestions = computed(() => {
   return props.questions && props.questions.length > 0 ? props.questions.length : props.decks.reduce((acc, d) => acc + (d.totalQuestions || 0), 0)
 })
 
-// ==============================================
-// LOGIKA KARTU TRIVIA (FLASHCARD)
-// ==============================================
-const isFlipped = ref(false)
-const currentTriviaIndex = ref(0)
-
 const getDeckTitle = (deckId) => {
   const d = props.decks.find((deck) => deck.id === deckId)
   return d ? d.title : 'Materi Belajar'
 }
 
-const currentTrivia = computed(() => {
-  if (!props.questions || props.questions.length === 0) return null
-  return props.questions[currentTriviaIndex.value % props.questions.length]
-})
-
-// Konversi data materi/kuis menjadi informasi fakta murni yang luwes & edukatif
-const currentTriviaInfo = computed(() => {
-  if (!currentTrivia.value) return null
-  const item = currentTrivia.value
-
-  const correctOpt =
-    Array.isArray(item.options) && item.options[item.correctIndex]
-      ? String(item.options[item.correctIndex]).trim()
-      : ''
-
-  // 1. Jika sudah ada properti dedicated 'trivia', gunakan langsung (kualitas terbaik)
-  if (item.trivia && typeof item.trivia === 'string' && item.trivia.trim().length > 10) {
-    let t = item.trivia.trim()
-    if (!t.endsWith('.')) t += '.'
-    return {
-      fact: t,
-      keyPoint: correctOpt
-    }
-  }
-
-  // 2. Bersihkan penjelasan kuis dari format meta-kuis
-  let rawExp = item.explanation ? String(item.explanation).trim() : ''
-  let qText = item.question ? String(item.question).trim() : ''
-
-  let cleanExp = rawExp
-    .replace(
-      /^(jawaban\s+(yang\s+)?(tepat|benar)\s+(adalah|ialah)?\s*([a-d]|pilihan\s+[a-d])?\s*(karena|yaitu|:)?\s*)/i,
-      ''
-    )
-    .replace(/^(pilihan\s+[a-d]\s+(tepat|benar)\s*(karena|yaitu|:)?\s*)/i, '')
-    .replace(/^(opsi\s+[a-d]\s+(tepat|benar)\s*(karena|yaitu|:)?\s*)/i, '')
-    .replace(/^(karena\s+)/i, '')
-    // Buang kalimat pembahasan opsi lain yang salah
-    .replace(/\b(sedangkan|sementara)\s+(pilihan|opsi)\s+.*$/i, '')
-    .trim()
-
-  cleanExp = cleanExp.replace(/\b(opsi|pilihan)\s+(ini|tersebut)\b/gi, 'konsep ini')
-
-  // Cek apakah cleanExp sudah menjadi kalimat fakta yang baik (dan tidak menyebut pilihan/opsi lagi)
-  const isExpGoodFact =
-    cleanExp.length >= 25 &&
-    !/\b(pilihan|opsi)\s+[a-d]\b/i.test(cleanExp) &&
-    !cleanExp.toLowerCase().includes('jawaban')
-
-  if (isExpGoodFact) {
-    cleanExp = cleanExp.charAt(0).toUpperCase() + cleanExp.slice(1)
-    if (!cleanExp.endsWith('.')) cleanExp += '.'
-    return {
-      fact: cleanExp,
-      keyPoint: correctOpt
-    }
-  }
-
-  // 3. Sintesis fakta deklaratif alami dari pertanyaan + jawaban benar
-  let cleanQ = qText.replace(/\?+$/, '').trim()
-  let synthesized = ''
-
-  // Pola: Apa yang dimaksud dengan X / Apa pengertian X
-  const mDef = cleanQ.match(/^(?:apa\s+(?:yang\s+dimaksud\s+(?:dengan)?|pengertian\s+(?:dari)?))\s+(.+)$/i)
-  if (mDef && mDef[1]) {
-    const term = mDef[1].trim()
-    const desc = correctOpt.replace(/^(adalah|merupakan|ialah)\s+/i, '').trim()
-    synthesized = `${term} merupakan ${desc}.`
-  }
-  // Pola: Apa fungsi / tujuan / peran / manfaat / keunggulan
-  else if (/^apa\s+(fungsi|tujuan|peran|manfaat|keunggulan|dampak|ciri)\s+(?:utama\s+)?(?:dari\s+)?(.+)$/i.test(cleanQ)) {
-    const m = cleanQ.match(/^apa\s+(fungsi|tujuan|peran|manfaat|keunggulan|dampak|ciri)\s+(?:utama\s+)?(?:dari\s+)?(.+)$/i)
-    const aspect = m[1].charAt(0).toUpperCase() + m[1].slice(1)
-    synthesized = `${aspect} dari ${m[2].trim()} adalah ${correctOpt}.`
-  }
-  // Pola: Mengapa X
-  else if (/^mengapa\s+(.+)$/i.test(cleanQ)) {
-    const m = cleanQ.match(/^mengapa\s+(.+)$/i)
-    synthesized = `${m[1].charAt(0).toUpperCase() + m[1].slice(1)} terjadi karena ${correctOpt.replace(/^karena\s+/i, '')}.`
-  }
-  // Pola: Kapan / Di mana / Siapa
-  else if (/^(kapan|di mana|dimana|siapa)\s+(.+)$/i.test(cleanQ)) {
-    const m = cleanQ.match(/^(kapan|di mana|dimana|siapa)\s+(.+)$/i)
-    synthesized = `${m[2].charAt(0).toUpperCase() + m[2].slice(1)} berkaitan dengan ${correctOpt}.`
-  }
-  // Fallback: gunakan cleanExp atau gabungkan topik pertanyaan dengan correctOpt
-  else {
-    synthesized = cleanExp || (correctOpt ? `Konsep ini menjelaskan bahwa ${correctOpt.toLowerCase().startsWith('bahwa') ? correctOpt.slice(5).trim() : correctOpt}.` : 'Informasi penting dari materi pembelajaran ini.')
-  }
-
-  if (synthesized.length > 0) {
-    synthesized = synthesized.charAt(0).toUpperCase() + synthesized.slice(1)
-    if (!synthesized.endsWith('.')) synthesized += '.'
-  }
-
-  return {
-    fact: synthesized,
-    keyPoint: correctOpt
-  }
-})
-
-const shuffleTrivia = () => {
-  if (!props.questions || props.questions.length <= 1) {
-    isFlipped.value = false
-    return
-  }
-  isFlipped.value = false
-  let nextIdx
-  do {
-    nextIdx = Math.floor(Math.random() * props.questions.length)
-  } while (nextIdx === currentTriviaIndex.value && props.questions.length > 1)
-
-  setTimeout(() => {
-    currentTriviaIndex.value = nextIdx
-  }, 150)
-}
-
-onMounted(() => {
-  if (props.questions && props.questions.length > 0) {
-    currentTriviaIndex.value = Math.floor(Math.random() * props.questions.length)
-  }
-})
-
-watch(
-  () => props.questions.length,
-  (newLen) => {
-    if (newLen > 0 && currentTriviaIndex.value === 0) {
-      currentTriviaIndex.value = Math.floor(Math.random() * newLen)
-    }
-  }
-)
+// Hanya tampilkan beberapa materi (maksimal 3) di beranda
+const displayedDecks = computed(() => (props.decks || []).slice(0, 3))
 </script>
 
 <template>
@@ -232,13 +97,12 @@ watch(
         </div>
 
         <div>
-          <div class="flex items-center gap-1.5">
-            <span class="text-base font-black tracking-tight text-white leading-none">Trainyy</span>
-            <span class="px-1.5 py-0.5 rounded text-[9px] font-bold bg-theme-soft text-theme-light border border-theme-border leading-none">
+          <span class="text-base font-black tracking-tight text-white leading-none">Trainyy</span>
+          <div class="mt-1">
+            <span class="inline-block px-1.5 py-0.5 rounded text-[9px] font-bold bg-theme-soft text-theme-light border border-theme-border leading-none">
               Active Recall
             </span>
           </div>
-          <p class="text-[10px] text-app-muted font-medium mt-0.5">Asah Ingatan & Pemahaman</p>
         </div>
       </div>
 
@@ -285,11 +149,7 @@ watch(
 
     <!-- Header Greeting -->
     <div class="pt-1">
-      <div class="flex items-center gap-1.5 text-xs font-medium text-theme-light uppercase tracking-wider">
-        <Zap class="w-3.5 h-3.5 fill-current" />
-        <span>Latihan Ingatan Harian</span>
-      </div>
-      <h1 class="text-xl font-bold text-white mt-0.5">
+      <h1 class="text-xl font-bold text-white">
         Hai, {{ userProfile?.name?.split(' ')[0] || 'Sobat Trainyy' }}
       </h1>
       <p class="text-xs text-app-muted mt-0.5">
@@ -338,145 +198,32 @@ watch(
     </div>
 
     <!-- ==============================================
-         SECTION 2: KARTU TRIVIA & FAKTA KILAT (FLASHCARD)
+         SECTION 2: SHORTCUT FAKTA KILAT (TRIVIA)
          ============================================== -->
-    <div class="space-y-2.5">
-      <div class="flex items-center justify-between">
-        <h2 class="text-sm font-bold text-white uppercase tracking-wider flex items-center gap-2">
-          <Lightbulb class="w-4 h-4 text-amber-400" />
-          <span>Fakta Kilat (Trivia)</span>
-        </h2>
-        <button
-          v-if="questions.length > 1"
-          type="button"
-          @click.stop="shuffleTrivia"
-          class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-theme-soft/60 hover:bg-theme-soft border border-theme-border/50 text-xs font-semibold text-theme-light hover:text-white active-press cursor-pointer transition-colors"
-          title="Acak Trivia Baru"
-        >
-          <Shuffle class="w-3.5 h-3.5" />
-          <span>Acak Baru</span>
-        </button>
-      </div>
-
-      <!-- If questions exist: 3D Flippable Card -->
-      <div v-if="questions.length > 0" class="perspective-1000 w-full min-h-[195px] select-none">
-        <div
-          role="region"
-          tabindex="0"
-          :aria-expanded="isFlipped"
-          aria-label="Kartu fakta kilat, ketuk atau tekan Enter/Spasi untuk membalik"
-          @click="isFlipped = !isFlipped"
-          @keydown.enter.self="isFlipped = !isFlipped"
-          @keydown.space.self.prevent="isFlipped = !isFlipped"
-          class="relative w-full min-h-[195px] rounded-2xl transform-style-3d transition-transform-500 cursor-pointer shadow-md focus-visible:ring-2 focus-visible:ring-theme-primary focus-visible:outline-hidden"
-          :class="{ 'rotate-y-180': isFlipped }"
-        >
-          <!-- SISI DEPAN (INFORMASI FAKTA KILAT) -->
-          <div
-            class="absolute inset-0 w-full h-full backface-hidden rounded-2xl p-4 sm:p-5 bg-app-card border border-app-border hover:border-theme-border transition-colors flex flex-col justify-between"
-          >
-            <!-- Header Kartu Depan -->
-            <div class="flex items-center justify-between text-xs">
-              <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-amber-500/15 text-amber-300 border border-amber-500/30">
-                <Sparkles class="w-3 h-3 text-amber-400" />
-                <span>Tahukah Kamu?</span>
-              </span>
-              <span class="text-[10px] text-app-muted truncate max-w-[150px] font-medium">
-                {{ getDeckTitle(currentTrivia?.deckId) }}
-              </span>
-            </div>
-
-            <!-- Teks Informasi Fakta (Murni Informasi Edukatif) -->
-            <div class="py-2.5">
-              <p class="text-sm sm:text-base font-semibold text-white leading-relaxed line-clamp-4">
-                {{ currentTriviaInfo?.fact }}
-              </p>
-            </div>
-
-            <!-- Petunjuk Balik Kartu -->
-            <div class="flex items-center justify-between text-[11px] text-app-muted pt-2 border-t border-app-border/50">
-              <span class="flex items-center gap-1.5 text-theme-light font-medium">
-                <RotateCcw class="w-3.5 h-3.5" />
-                <span>Ketuk kartu untuk melihat poin kunci</span>
-              </span>
-              <span class="text-[10px] shrink-0 font-mono">{{ (currentTriviaIndex % questions.length) + 1 }}/{{ questions.length }}</span>
-            </div>
-          </div>
-
-          <!-- SISI BELAKANG (INTISARI KONSEP & POIN KUNCI) -->
-          <div
-            class="absolute inset-0 w-full h-full backface-hidden rotate-y-180 rounded-2xl p-4 sm:p-5 bg-app-surface border border-theme-border shadow-theme-glow flex flex-col justify-between"
-          >
-            <!-- Header Kartu Belakang -->
-            <div class="flex items-center justify-between text-xs">
-              <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/15 text-emerald-300 border border-emerald-500/30">
-                <Check class="w-3 h-3 text-emerald-400" />
-                <span>Intisari Konsep</span>
-              </span>
-              <span class="text-[10px] text-app-muted truncate max-w-[150px] font-medium">
-                {{ getDeckTitle(currentTrivia?.deckId) }}
-              </span>
-            </div>
-
-            <!-- Poin Kunci & Ulasan Konteks -->
-            <div class="py-2 space-y-2 overflow-y-auto max-h-[105px] pr-1.5 scrollbar-thin text-left">
-              <div v-if="currentTriviaInfo?.keyPoint" class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-emerald-500/10 text-emerald-300 border border-emerald-500/25 text-xs font-bold">
-                <Check class="w-3.5 h-3.5 text-emerald-400 shrink-0" />
-                <span class="leading-tight">Poin Kunci: {{ currentTriviaInfo?.keyPoint }}</span>
-              </div>
-              <p class="text-xs text-app-text/90 leading-relaxed font-normal">
-                {{ currentTriviaInfo?.fact }}
-              </p>
-            </div>
-
-            <!-- Tombol Aksi di Kartu Belakang -->
-            <div class="flex items-center justify-between text-[11px] pt-2 border-t border-app-border/60">
-              <button
-                type="button"
-                @click.stop="isFlipped = false"
-                class="text-app-muted hover:text-white flex items-center gap-1 active-press cursor-pointer py-1 px-2 rounded-lg hover:bg-app-card/60"
-              >
-                <RotateCcw class="w-3 h-3" />
-                <span>Tutup Jawaban</span>
-              </button>
-
-              <button
-                type="button"
-                @click.stop="shuffleTrivia"
-                class="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-theme-primary hover:bg-theme-hover text-white font-semibold text-xs shadow-xs active-press cursor-pointer"
-              >
-                <Shuffle class="w-3 h-3" />
-                <span>Fakta Lain</span>
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Empty State for Trivia if 0 questions -->
-      <div
-        v-else
-        class="bg-app-card border border-app-border/70 rounded-2xl p-5 text-center space-y-3"
-      >
-        <div class="w-10 h-10 mx-auto rounded-full bg-amber-500/10 text-amber-400 flex items-center justify-center border border-amber-500/20">
+    <button
+      type="button"
+      @click="emit('navigate', 'trivia')"
+      class="w-full p-3.5 rounded-2xl bg-gradient-to-r from-amber-500/10 via-theme-soft to-amber-500/5 border border-amber-500/25 hover:border-amber-500/40 flex items-center justify-between text-left active-press transition-all cursor-pointer group"
+    >
+      <div class="flex items-center gap-3 min-w-0">
+        <div class="w-9 h-9 rounded-xl bg-amber-500/15 border border-amber-500/30 text-amber-400 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
           <Lightbulb class="w-5 h-5" />
         </div>
-        <div>
-          <h3 class="text-sm font-bold text-white">Kartu Trivia Belum Aktif</h3>
-          <p class="text-xs text-app-muted mt-1 max-w-xs mx-auto">
-            Tambah materi belajarmu untuk mengaktifkan kartu fakta kilat dan latihan active recall harian.
-          </p>
+        <div class="min-w-0">
+          <div class="flex items-center gap-1.5">
+            <span class="text-xs font-bold text-white">Fakta Kilat (Trivia)</span>
+            <span class="px-1.5 py-0.5 rounded text-[9px] font-bold bg-amber-500/20 text-amber-300 border border-amber-500/30">
+              {{ questions.length }} Fakta
+            </span>
+          </div>
+          <p class="text-[11px] text-app-muted truncate mt-0.5">Asah wawasan & intisari konsep dengan kartu flashcard</p>
         </div>
-        <button
-          type="button"
-          @click="emit('open-new-deck-modal')"
-          class="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-theme-primary hover:bg-theme-hover text-white text-xs font-semibold active-press cursor-pointer shadow-xs"
-        >
-          <Plus class="w-3.5 h-3.5" />
-          <span>Tambah Materi Sekarang</span>
-        </button>
       </div>
-    </div>
+      <div class="flex items-center gap-1 text-xs text-amber-300/90 font-semibold shrink-0 ml-2">
+        <span>Buka</span>
+        <ChevronRight class="w-4 h-4 text-app-dim group-hover:text-amber-400 group-hover:translate-x-0.5 transition-all" />
+      </div>
+    </button>
 
     <!-- ==============================================
          SECTION 3: PRIMARY ACTION HERO (MULAI KUIS)
@@ -538,7 +285,7 @@ watch(
       <!-- Decks List -->
       <div v-if="decks.length > 0" class="space-y-2.5">
         <div
-          v-for="deck in decks"
+          v-for="deck in displayedDecks"
           :key="deck.id"
           class="bg-app-card border border-app-border rounded-xl p-3.5 flex items-center justify-between hover:border-theme-border transition-colors"
         >
@@ -562,6 +309,16 @@ watch(
             <span>Kuis</span>
           </button>
         </div>
+
+        <!-- Tombol Lihat Semua Materi -->
+        <button
+          v-if="decks.length > 3"
+          @click="emit('navigate', 'decks')"
+          class="w-full py-2.5 px-3 rounded-xl bg-app-subtle hover:bg-app-border border border-app-border text-center text-xs font-semibold text-theme-light hover:text-white flex items-center justify-center gap-1 active-press transition-colors cursor-pointer"
+        >
+          <span>Lihat Semua {{ decks.length }} Materi</span>
+          <ChevronRight class="w-3.5 h-3.5" />
+        </button>
       </div>
 
       <!-- Empty State for Decks -->
@@ -631,7 +388,7 @@ watch(
     <!-- Footer Credit -->
     <div class="text-center text-[11px] text-app-dim pt-4 pb-2">
       <p>
-        Trainyy v1.1.0 • 
+        Trainyy v1.1.0 â€¢ 
         <a 
           href="https://awanbeo.my.id" 
           target="_blank" 

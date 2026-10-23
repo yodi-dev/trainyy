@@ -1,6 +1,7 @@
 <script setup>
 import { 
   Home, 
+  Lightbulb,
   BookOpen, 
   Target, 
   Settings 
@@ -21,6 +22,7 @@ const emit = defineEmits(['update:tab'])
 
 const tabs = [
   { id: 'home', label: 'Beranda', icon: Home },
+  { id: 'trivia', label: 'Trivia', icon: Lightbulb },
   { id: 'decks', label: 'Materi', icon: BookOpen },
   { id: 'remedial', label: 'Soal Salah', icon: Target, badge: true },
   { id: 'settings', label: 'Pengaturan', icon: Settings }

@@ -7,6 +7,7 @@ import { useTheme } from './composables/useTheme'
 // Components
 import BottomNav from './components/BottomNav.vue'
 import HomeTab from './components/HomeTab.vue'
+import TriviaTab from './components/TriviaTab.vue'
 import DecksTab from './components/DecksTab.vue'
 import RemedialTab from './components/RemedialTab.vue'
 import SettingsTab from './components/SettingsTab.vue'
@@ -19,6 +20,9 @@ const {
   userProfile,
   lastBackupTime,
   linkedSheetId,
+  isBackingUp: isDriveBackingUp,
+  isRestoring: isDriveRestoring,
+  isConnecting: isDriveConnecting,
   isLoading: isDriveLoading,
   statusMessage: driveStatusMessage,
   isConnected: isGoogleConnected,
@@ -260,7 +264,7 @@ const triggerBackgroundDriveBackup = async () => {
       questions: await db.questions.toArray(),
       sessions: await db.sessions.toArray()
     }
-    await backupToDrive(fullData, false)
+    await backupToDrive(fullData, false, true)
   } catch (err) {
     console.warn('Background Drive backup error:', err)
   }
@@ -459,6 +463,15 @@ onUnmounted(() => {
           @navigate="currentTab = $event"
         />
 
+        <TriviaTab
+          v-else-if="currentTab === 'trivia'"
+          :questions="questions"
+          :decks="decks"
+          @start-deck-quiz="startDeckQuiz"
+          @open-new-deck-modal="currentTab = 'decks'"
+          @navigate="currentTab = $event"
+        />
+
         <DecksTab
           v-else-if="currentTab === 'decks'"
           :decks="decks"
@@ -485,6 +498,9 @@ onUnmounted(() => {
           :last-backup-time="lastBackupTime"
           :linked-sheet-id="linkedSheetId"
           :is-loading="isDriveLoading"
+          :is-backing-up="isDriveBackingUp"
+          :is-restoring="isDriveRestoring"
+          :is-connecting="isDriveConnecting"
           :status-message="driveStatusMessage"
           @connect-google="handleConnectGoogle"
           @disconnect-google="disconnectGoogle"
