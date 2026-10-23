@@ -87,7 +87,7 @@ const currentTrivia = computed(() => {
   return props.questions[currentTriviaIndex.value % props.questions.length]
 })
 
-// Konversi data kuis menjadi informasi murni (bukan berbentuk kalimat tanya)
+// Konversi data materi/kuis menjadi informasi fakta murni yang luwes & edukatif
 const currentTriviaInfo = computed(() => {
   if (!currentTrivia.value) return null
   const item = currentTrivia.value
@@ -97,9 +97,20 @@ const currentTriviaInfo = computed(() => {
       ? String(item.options[item.correctIndex]).trim()
       : ''
 
-  let rawExp = item.explanation ? String(item.explanation).trim() : ''
+  // 1. Jika sudah ada properti dedicated 'trivia', gunakan langsung (kualitas terbaik)
+  if (item.trivia && typeof item.trivia === 'string' && item.trivia.trim().length > 10) {
+    let t = item.trivia.trim()
+    if (!t.endsWith('.')) t += '.'
+    return {
+      fact: t,
+      keyPoint: correctOpt
+    }
+  }
 
-  // Bersihkan awalan khas format soal kuis agar menjadi kalimat informasi murni
+  // 2. Bersihkan penjelasan kuis dari format meta-kuis
+  let rawExp = item.explanation ? String(item.explanation).trim() : ''
+  let qText = item.question ? String(item.question).trim() : ''
+
   let cleanExp = rawExp
     .replace(
       /^(jawaban\s+(yang\s+)?(tepat|benar)\s+(adalah|ialah)?\s*([a-d]|pilihan\s+[a-d])?\s*(karena|yaitu|:)?\s*)/i,
@@ -108,19 +119,66 @@ const currentTriviaInfo = computed(() => {
     .replace(/^(pilihan\s+[a-d]\s+(tepat|benar)\s*(karena|yaitu|:)?\s*)/i, '')
     .replace(/^(opsi\s+[a-d]\s+(tepat|benar)\s*(karena|yaitu|:)?\s*)/i, '')
     .replace(/^(karena\s+)/i, '')
+    // Buang kalimat pembahasan opsi lain yang salah
+    .replace(/\b(sedangkan|sementara)\s+(pilihan|opsi)\s+.*$/i, '')
     .trim()
 
-  if (cleanExp.length > 0) {
+  cleanExp = cleanExp.replace(/\b(opsi|pilihan)\s+(ini|tersebut)\b/gi, 'konsep ini')
+
+  // Cek apakah cleanExp sudah menjadi kalimat fakta yang baik (dan tidak menyebut pilihan/opsi lagi)
+  const isExpGoodFact =
+    cleanExp.length >= 25 &&
+    !/\b(pilihan|opsi)\s+[a-d]\b/i.test(cleanExp) &&
+    !cleanExp.toLowerCase().includes('jawaban')
+
+  if (isExpGoodFact) {
     cleanExp = cleanExp.charAt(0).toUpperCase() + cleanExp.slice(1)
+    if (!cleanExp.endsWith('.')) cleanExp += '.'
+    return {
+      fact: cleanExp,
+      keyPoint: correctOpt
+    }
   }
 
-  // Fallback jika explanation kosong
-  if (!cleanExp) {
-    cleanExp = correctOpt || 'Informasi materi pembelajaran ini tersimpan untuk memperkuat pemahaman konsep.'
+  // 3. Sintesis fakta deklaratif alami dari pertanyaan + jawaban benar
+  let cleanQ = qText.replace(/\?+$/, '').trim()
+  let synthesized = ''
+
+  // Pola: Apa yang dimaksud dengan X / Apa pengertian X
+  const mDef = cleanQ.match(/^(?:apa\s+(?:yang\s+dimaksud\s+(?:dengan)?|pengertian\s+(?:dari)?))\s+(.+)$/i)
+  if (mDef && mDef[1]) {
+    const term = mDef[1].trim()
+    const desc = correctOpt.replace(/^(adalah|merupakan|ialah)\s+/i, '').trim()
+    synthesized = `${term} merupakan ${desc}.`
+  }
+  // Pola: Apa fungsi / tujuan / peran / manfaat / keunggulan
+  else if (/^apa\s+(fungsi|tujuan|peran|manfaat|keunggulan|dampak|ciri)\s+(?:utama\s+)?(?:dari\s+)?(.+)$/i.test(cleanQ)) {
+    const m = cleanQ.match(/^apa\s+(fungsi|tujuan|peran|manfaat|keunggulan|dampak|ciri)\s+(?:utama\s+)?(?:dari\s+)?(.+)$/i)
+    const aspect = m[1].charAt(0).toUpperCase() + m[1].slice(1)
+    synthesized = `${aspect} dari ${m[2].trim()} adalah ${correctOpt}.`
+  }
+  // Pola: Mengapa X
+  else if (/^mengapa\s+(.+)$/i.test(cleanQ)) {
+    const m = cleanQ.match(/^mengapa\s+(.+)$/i)
+    synthesized = `${m[1].charAt(0).toUpperCase() + m[1].slice(1)} terjadi karena ${correctOpt.replace(/^karena\s+/i, '')}.`
+  }
+  // Pola: Kapan / Di mana / Siapa
+  else if (/^(kapan|di mana|dimana|siapa)\s+(.+)$/i.test(cleanQ)) {
+    const m = cleanQ.match(/^(kapan|di mana|dimana|siapa)\s+(.+)$/i)
+    synthesized = `${m[2].charAt(0).toUpperCase() + m[2].slice(1)} berkaitan dengan ${correctOpt}.`
+  }
+  // Fallback: gunakan cleanExp atau gabungkan topik pertanyaan dengan correctOpt
+  else {
+    synthesized = cleanExp || (correctOpt ? `Konsep ini menjelaskan bahwa ${correctOpt.toLowerCase().startsWith('bahwa') ? correctOpt.slice(5).trim() : correctOpt}.` : 'Informasi penting dari materi pembelajaran ini.')
+  }
+
+  if (synthesized.length > 0) {
+    synthesized = synthesized.charAt(0).toUpperCase() + synthesized.slice(1)
+    if (!synthesized.endsWith('.')) synthesized += '.'
   }
 
   return {
-    fact: cleanExp,
+    fact: synthesized,
     keyPoint: correctOpt
   }
 })

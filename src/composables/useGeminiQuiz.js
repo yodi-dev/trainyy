@@ -33,6 +33,24 @@ export function useGeminiQuiz() {
   }
 
   /**
+   * Helper pembersih teks trivia agar berupa fakta informasi murni (bukan pertanyaan)
+   */
+  const cleanTriviaText = (text) => {
+    if (!text || typeof text !== 'string') return null
+    let cleaned = text.trim()
+    // Ganti tanda tanya di akhir jika ada
+    cleaned = cleaned.replace(/\?+$/, '.')
+    // Buang awalan meta seperti "Tahukah kamu:", "Trivia:", dsb.
+    cleaned = cleaned.replace(/^(tahukah\s+kamu(\s+bahwa|\s+kalau)?\s*[:,]?\s*)/i, '')
+    cleaned = cleaned.replace(/^(trivia|fakta)\s*[:,]?\s*/i, '')
+    if (cleaned.length > 0) {
+      cleaned = cleaned.charAt(0).toUpperCase() + cleaned.slice(1)
+      if (!cleaned.endsWith('.')) cleaned += '.'
+    }
+    return cleaned || null
+  }
+
+  /**
    * Helper penentu correctIndex yang tangguh (mendukung angka, string numerik, maupun huruf A-D)
    */
   const parseCorrectIndex = (q) => {
@@ -126,7 +144,12 @@ ATURAN WAJIB PEMBUATAN SOAL:
    - Jelaskan alasan konsep mengapa opsi yang dipilih benar dan ringkas fakta intinya.
    - DILARANG KERAS menggunakan kata pujian atau pembuka seperti "Benar sekali!", "Tepat sekali!", "Jawaban Anda benar", "Hebat!", dsb.
    - Penjelasan harus berbunyi netral dan edukatif (contoh: "Jawaban yang tepat adalah [X] karena [fakta konsep]..."), karena penjelasan ini akan dibaca baik oleh siswa yang menjawab benar maupun siswa yang menjawab salah!
-5. Gunakan Bahasa Indonesia yang luwes, jelas, dan ramah orang awam.
+5. ATURAN FAKTA KILAT TRIVIA (trivia):
+   - Wajib sertakan 1-2 kalimat fakta pengetahuan / wawasan edukatif yang berdiri sendiri (standalone) tentang konsep ini.
+   - Ditulis dengan gaya wawasan ensiklopedia edukatif yang menarik dan menyenangkan dibaca (gaya "Tahukah Kamu?").
+   - DILARANG KERAS menggunakan kalimat tanya (jangan gunakan tanda tanya ? atau kata tanya 'Apa/Mengapa/Bagaimana').
+   - DILARANG menyebut kata 'soal', 'pertanyaan', 'jawaban', 'pilihan A/B/C/D', atau 'opsi'. Murni tuliskan informasi atau fakta pengetahuan konsepnya.
+6. Gunakan Bahasa Indonesia yang luwes, jelas, dan ramah orang awam.
 
 KEMBALIKAN HANYA ARRAY JSON DENGAN STRUKTUR BERIKUT (TANPA MARKDOWN CODEBLOCK LAIN):
 [
@@ -134,7 +157,8 @@ KEMBALIKAN HANYA ARRAY JSON DENGAN STRUKTUR BERIKUT (TANPA MARKDOWN CODEBLOCK LA
     "question": "Teks pertanyaan di sini...",
     "options": ["Pilihan A", "Pilihan B", "Pilihan C", "Pilihan D"],
     "correctIndex": 0,
-    "explanation": "Jawaban yang tepat adalah Pilihan A karena..."
+    "explanation": "Jawaban yang tepat adalah Pilihan A karena...",
+    "trivia": "Satu atau dua kalimat fakta informasi mandiri yang menarik tentang konsep materi ini..."
   }
 ]`
 
@@ -214,6 +238,7 @@ KEMBALIKAN HANYA ARRAY JSON DENGAN STRUKTUR BERIKUT (TANPA MARKDOWN CODEBLOCK LA
           options: validOptions,
           correctIndex: correctIdx,
           explanation: cleanExplanationText(q.explanation),
+          trivia: cleanTriviaText(q.trivia),
           timesAnswered: 0,
           timesCorrect: 0,
           timesIncorrect: 0,
