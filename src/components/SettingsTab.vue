@@ -526,8 +526,18 @@ const updateQuizMode = (mode) => {
     </div>
 
     <!-- App Info & Version -->
-    <div class="text-center space-y-1 text-app-dim text-xs pt-2">
-      <p class="font-bold text-app-muted">Trainyy v1.0 â€¢ Inisial Y (Yodi)</p>
+    <div class="text-center space-y-1.5 text-app-dim text-xs pt-2">
+      <p class="font-bold text-app-muted">
+        Trainyy v1.1.0 • 
+        <a 
+          href="https://awanbeo.my.id" 
+          target="_blank" 
+          rel="noopener noreferrer" 
+          class="text-theme-light hover:underline font-semibold"
+        >
+          awanbeo.my.id
+        </a>
+      </p>
       <p class="text-[11px]">Dibuat untuk belajar mandiri yang praktis, cepat, dan bisa diakses kapan saja.</p>
     </div>
   </div>

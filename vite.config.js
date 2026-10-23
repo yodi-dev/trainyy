@@ -14,7 +14,7 @@ export default defineConfig({
       manifest: {
         name: 'Trainyy - Belajar Kuis AI & PWA Offline',
         short_name: 'Trainyy',
-        description: 'Aplikasi latihan kuis 10 soal berbasis active recall dan materi PDF/teks oleh Yodi',
+        description: 'Aplikasi latihan kuis 10 soal berbasis active recall dan materi PDF/teks oleh awanbeo.my.id',
         lang: 'id',
         theme_color: '#090d16',
         background_color: '#090d16',

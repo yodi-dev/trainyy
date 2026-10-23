@@ -254,7 +254,7 @@ const handleCreateDeckSuccess = async ({ deck, questions: newQuestions }) => {
 const triggerBackgroundDriveBackup = async () => {
   try {
     const fullData = {
-      version: '1.0',
+      version: '1.1',
       exportedAt: new Date().toISOString(),
       decks: await db.decks.toArray(),
       questions: await db.questions.toArray(),
@@ -270,7 +270,7 @@ const triggerBackgroundDriveBackup = async () => {
 const handleManualBackup = async () => {
   try {
     const fullData = {
-      version: '1.0',
+      version: '1.1',
       exportedAt: new Date().toISOString(),
       decks: await db.decks.toArray(),
       questions: await db.questions.toArray(),
@@ -324,7 +324,7 @@ const handleDriveRestore = async () => {
 const handleExportLocalBackup = async () => {
   try {
     const fullData = {
-      version: '1.0',
+      version: '1.1',
       app: 'Trainyy',
       exportedAt: new Date().toISOString(),
       decks: await db.decks.toArray(),

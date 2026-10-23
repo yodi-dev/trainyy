@@ -627,5 +627,20 @@ watch(
         </div>
       </div>
     </div>
+
+    <!-- Footer Credit -->
+    <div class="text-center text-[11px] text-app-dim pt-4 pb-2">
+      <p>
+        Trainyy v1.1.0 • 
+        <a 
+          href="https://awanbeo.my.id" 
+          target="_blank" 
+          rel="noopener noreferrer" 
+          class="text-theme-light hover:underline font-medium"
+        >
+          awanbeo.my.id
+        </a>
+      </p>
+    </div>
   </div>
 </template>
