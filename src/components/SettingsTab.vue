@@ -17,7 +17,10 @@ import {
   EyeOff,
   LogOut,
   ChevronDown,
-  Loader2
+  Loader2,
+  HardDrive,
+  FileDown,
+  FileUp
 } from '@lucide/vue'
 import { useTheme } from '../composables/useTheme'
 
@@ -53,12 +56,27 @@ const emit = defineEmits([
   'disconnect-google',
   'backup-drive',
   'restore-drive',
-  'create-sheet'
+  'create-sheet',
+  'export-local-backup',
+  'import-local-backup'
 ])
 
 const { themes, currentTheme, applyTheme } = useTheme()
 
 const imgError = ref(false)
+const fileInputRef = ref(null)
+
+const triggerImportFile = () => {
+  fileInputRef.value?.click()
+}
+
+const onFileSelected = (event) => {
+  const file = event.target.files?.[0]
+  if (file) {
+    emit('import-local-backup', file)
+    event.target.value = ''
+  }
+}
 
 // AI Key State
 const apiKeyInput = ref(
@@ -233,6 +251,47 @@ const updateQuizMode = (mode) => {
             <Loader2 v-if="isLoading" class="w-3.5 h-3.5 animate-spin" />
             <Download v-else class="w-3.5 h-3.5" />
             <span>{{ isLoading ? 'Memulihkan...' : 'Ambil Cadangan' }}</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Cadangan File Offline (.json) -->
+      <div class="pt-3 border-t border-app-border/60 space-y-2.5">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center gap-1.5 text-xs font-bold text-white">
+            <HardDrive class="w-3.5 h-3.5 text-theme-light" />
+            <span>Cadangan Offline (.json)</span>
+          </div>
+          <span class="text-[10px] text-app-dim">Bebas Akun • Offline</span>
+        </div>
+        <p class="text-[11px] text-app-muted leading-relaxed">
+          Simpan seluruh materi dan kuis ke file lokal di HP/laptop Anda, atau pulihkan dari file JSON yang ada tanpa internet.
+        </p>
+
+        <!-- Hidden input file -->
+        <input
+          ref="fileInputRef"
+          type="file"
+          accept=".json,application/json"
+          class="hidden"
+          @change="onFileSelected"
+        />
+
+        <div class="grid grid-cols-2 gap-2 pt-0.5">
+          <button
+            @click="emit('export-local-backup')"
+            class="py-2 px-3 rounded-xl bg-app-subtle hover:bg-app-border text-white font-semibold text-xs flex items-center justify-center gap-1.5 active-press cursor-pointer border border-app-border transition-colors"
+          >
+            <FileDown class="w-3.5 h-3.5 text-theme-light" />
+            <span>Unduh JSON</span>
+          </button>
+
+          <button
+            @click="triggerImportFile"
+            class="py-2 px-3 rounded-xl bg-app-subtle hover:bg-app-border text-white font-semibold text-xs flex items-center justify-center gap-1.5 active-press cursor-pointer border border-app-border transition-colors"
+          >
+            <FileUp class="w-3.5 h-3.5 text-amber-400" />
+            <span>Pulihkan JSON</span>
           </button>
         </div>
       </div>
@@ -468,7 +527,7 @@ const updateQuizMode = (mode) => {
 
     <!-- App Info & Version -->
     <div class="text-center space-y-1 text-app-dim text-xs pt-2">
-      <p class="font-bold text-app-muted">Trainyy v1.0 • Inisial Y (Yodi)</p>
+      <p class="font-bold text-app-muted">Trainyy v1.0 â€¢ Inisial Y (Yodi)</p>
       <p class="text-[11px]">Dibuat untuk belajar mandiri yang praktis, cepat, dan bisa diakses kapan saja.</p>
     </div>
   </div>

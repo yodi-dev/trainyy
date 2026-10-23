@@ -101,19 +101,26 @@ export function useGoogleDrive() {
   }
 
   // Ensure valid token
-  const ensureToken = async () => {
+  const ensureToken = async (interactive = false) => {
     const expiresAt = parseInt(localStorage.getItem('trainyy_gdrive_token_expires') || '0', 10)
     if (accessToken.value && expiresAt > Date.now()) {
       return accessToken.value
     }
-    return await requestToken('')
+    try {
+      return await requestToken('')
+    } catch (err) {
+      if (interactive) {
+        return await requestToken('select_account')
+      }
+      throw err
+    }
   }
 
   // Authenticated fetch with automatic token refresh on 401
-  const fetchWithAuth = async (url, options = {}, isRetry = false) => {
-    let token = await ensureToken().catch(() => null)
+  const fetchWithAuth = async (url, options = {}, isRetry = false, interactive = false) => {
+    let token = await ensureToken(interactive).catch(() => null)
     if (!token) {
-      token = await requestToken('')
+      token = await requestToken(interactive ? 'select_account' : '')
     }
 
     const headers = new Headers(options.headers || {})
@@ -129,8 +136,8 @@ export function useGoogleDrive() {
       accessToken.value = null
       localStorage.removeItem('trainyy_gdrive_token')
       localStorage.removeItem('trainyy_gdrive_token_expires')
-      token = await requestToken('')
-      return fetchWithAuth(url, options, true)
+      token = await requestToken(interactive ? 'select_account' : '')
+      return fetchWithAuth(url, options, true, interactive)
     }
 
     return res
@@ -173,10 +180,13 @@ export function useGoogleDrive() {
   }
 
   // Find existing backup file on Drive
-  const findBackupFileId = async () => {
+  const findBackupFileId = async (interactive = false) => {
     const q = encodeURIComponent(`name='${BACKUP_FILENAME}' and trashed=false`)
     const res = await fetchWithAuth(
-      `https://www.googleapis.com/drive/v3/files?q=${q}&fields=files(id,name,modifiedTime)`
+      `https://www.googleapis.com/drive/v3/files?q=${q}&orderBy=modifiedTime desc&fields=files(id,name,modifiedTime)`,
+      {},
+      false,
+      interactive
     )
     if (!res.ok) {
       const errJson = await res.json().catch(() => ({}))
@@ -211,11 +221,11 @@ export function useGoogleDrive() {
   }
 
   // Backup Data to Google Drive
-  const backup = async (fullData) => {
+  const backup = async (fullData, interactive = false) => {
     isLoading.value = true
     statusMessage.value = 'Menyimpan cadangan ke Google Drive...'
     try {
-      const existingFileId = await findBackupFileId()
+      const existingFileId = await findBackupFileId(interactive)
       const content = JSON.stringify(fullData, null, 2)
 
       if (existingFileId) {
@@ -225,7 +235,9 @@ export function useGoogleDrive() {
             method: 'PATCH',
             headers: { 'Content-Type': 'application/json' },
             body: content
-          }
+          },
+          false,
+          interactive
         )
         if (!updateRes.ok) {
           const errData = await updateRes.json().catch(() => ({}))
@@ -239,14 +251,15 @@ export function useGoogleDrive() {
         }
 
         const boundary = '-------trainyy_boundary_' + Date.now()
-        const delimiter = `\r\n--${boundary}\r\n`
+        const startDelimiter = `--${boundary}\r\n`
+        const midDelimiter = `\r\n--${boundary}\r\n`
         const closeDelimiter = `\r\n--${boundary}--`
 
         const multipartBody =
-          delimiter +
+          startDelimiter +
           'Content-Type: application/json; charset=UTF-8\r\n\r\n' +
           JSON.stringify(metadata) +
-          delimiter +
+          midDelimiter +
           'Content-Type: application/json\r\n\r\n' +
           content +
           closeDelimiter
@@ -259,7 +272,9 @@ export function useGoogleDrive() {
               'Content-Type': `multipart/related; boundary=${boundary}`
             },
             body: multipartBody
-          }
+          },
+          false,
+          interactive
         )
         if (!createRes.ok) {
           const errData = await createRes.json().catch(() => ({}))
@@ -281,17 +296,20 @@ export function useGoogleDrive() {
   }
 
   // Restore Data from Google Drive
-  const restore = async () => {
+  const restore = async (interactive = true) => {
     isLoading.value = true
     statusMessage.value = 'Mengambil cadangan dari Google Drive...'
     try {
-      const fileId = await findBackupFileId()
+      const fileId = await findBackupFileId(interactive)
       if (!fileId) {
         throw new Error('Tidak ditemukan file cadangan (trainyy-backup.json) di Google Drive Anda.')
       }
 
       const res = await fetchWithAuth(
-        `https://www.googleapis.com/drive/v3/files/${fileId}?alt=media`
+        `https://www.googleapis.com/drive/v3/files/${fileId}?alt=media`,
+        {},
+        false,
+        interactive
       )
       if (!res.ok) throw new Error('Gagal mengunduh file cadangan dari Google Drive.')
 

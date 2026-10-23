@@ -260,7 +260,7 @@ const triggerBackgroundDriveBackup = async () => {
       questions: await db.questions.toArray(),
       sessions: await db.sessions.toArray()
     }
-    await backupToDrive(fullData)
+    await backupToDrive(fullData, false)
   } catch (err) {
     console.warn('Background Drive backup error:', err)
   }
@@ -276,7 +276,7 @@ const handleManualBackup = async () => {
       questions: await db.questions.toArray(),
       sessions: await db.sessions.toArray()
     }
-    const res = await backupToDrive(fullData)
+    const res = await backupToDrive(fullData, true)
     if (res?.success) {
       alert('Cadangan data berhasil disimpan ke Google Drive Anda!')
     } else {
@@ -289,24 +289,105 @@ const handleManualBackup = async () => {
 
 // Drive Restore
 const handleDriveRestore = async () => {
-  const res = await restoreFromDrive()
-  if (res.success && res.data) {
-    if (confirm('Ingin memulihkan data materi dan catatan belajarmu dari Google Drive? Data di perangkat akan disesuaikan dengan data cadangan.')) {
-      if (res.data.decks) {
-        await db.decks.clear()
-        await db.decks.bulkAdd(res.data.decks)
+  try {
+    const res = await restoreFromDrive(true)
+    if (res?.success && res.data) {
+      const deckCount = res.data.decks ? res.data.decks.length : 0
+      const questionCount = res.data.questions ? res.data.questions.length : 0
+      if (confirm(`Ingin memulihkan ${deckCount} materi dan ${questionCount} soal dari Google Drive? Data lokal saat ini akan digantikan dengan cadangan.`)) {
+        await db.transaction('rw', [db.decks, db.questions, db.sessions], async () => {
+          if (Array.isArray(res.data.decks)) {
+            await db.decks.clear()
+            await db.decks.bulkAdd(res.data.decks)
+          }
+          if (Array.isArray(res.data.questions)) {
+            await db.questions.clear()
+            await db.questions.bulkAdd(res.data.questions)
+          }
+          if (Array.isArray(res.data.sessions)) {
+            await db.sessions.clear()
+            await db.sessions.bulkAdd(res.data.sessions)
+          }
+        })
+        await loadLocalData()
+        alert('Data berhasil dipulihkan dari Google Drive!')
       }
-      if (res.data.questions) {
-        await db.questions.clear()
-        await db.questions.bulkAdd(res.data.questions)
-      }
-      if (res.data.sessions) {
-        await db.sessions.clear()
-        await db.sessions.bulkAdd(res.data.sessions)
-      }
-      await loadLocalData()
-      alert('Data berhasil dipulihkan dari Google Drive!')
+    } else {
+      alert(res?.error || 'Gagal memulihkan cadangan. Pastikan file cadangan (trainyy-backup.json) ada di Google Drive Anda.')
     }
+  } catch (err) {
+    alert('Terjadi kesalahan saat memulihkan cadangan: ' + (err.message || err))
+  }
+}
+
+// Local JSON Backup: Export
+const handleExportLocalBackup = async () => {
+  try {
+    const fullData = {
+      version: '1.0',
+      app: 'Trainyy',
+      exportedAt: new Date().toISOString(),
+      decks: await db.decks.toArray(),
+      questions: await db.questions.toArray(),
+      sessions: await db.sessions.toArray()
+    }
+
+    const jsonStr = JSON.stringify(fullData, null, 2)
+    const blob = new Blob([jsonStr], { type: 'application/json' })
+    const url = URL.createObjectURL(blob)
+
+    const dateStr = new Date().toISOString().slice(0, 10)
+    const link = document.createElement('a')
+    link.href = url
+    link.download = `trainyy-backup-${dateStr}.json`
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+    URL.revokeObjectURL(url)
+  } catch (err) {
+    alert('Gagal mengekspor file cadangan lokal: ' + (err.message || err))
+  }
+}
+
+// Local JSON Backup: Import
+const handleImportLocalBackup = async (file) => {
+  if (!file) return
+  try {
+    const text = await file.text()
+    const data = JSON.parse(text)
+
+    if (!Array.isArray(data.decks) && !Array.isArray(data.questions)) {
+      throw new Error('Format file cadangan tidak sesuai (tidak ditemukan data materi atau kuis).')
+    }
+
+    const deckCount = data.decks ? data.decks.length : 0
+    const questionCount = data.questions ? data.questions.length : 0
+
+    if (confirm(`Pulihkan ${deckCount} materi dan ${questionCount} soal dari file "${file.name}"? Data di perangkat saat ini akan digantikan.`)) {
+      await db.transaction('rw', [db.decks, db.questions, db.sessions], async () => {
+        if (Array.isArray(data.decks)) {
+          await db.decks.clear()
+          await db.decks.bulkAdd(data.decks)
+        }
+        if (Array.isArray(data.questions)) {
+          await db.questions.clear()
+          await db.questions.bulkAdd(data.questions)
+        }
+        if (Array.isArray(data.sessions)) {
+          await db.sessions.clear()
+          await db.sessions.bulkAdd(data.sessions)
+        }
+      })
+      await loadLocalData()
+      alert('Data berhasil dipulihkan dari file cadangan lokal!')
+
+      // Sync to Google Drive in background if connected
+      if (isGoogleConnected.value && isOnline.value) {
+        triggerBackgroundDriveBackup()
+      }
+    }
+  } catch (err) {
+    alert('Gagal memulihkan file cadangan: ' + (err.message || err))
   }
 }
 
@@ -410,6 +491,8 @@ onUnmounted(() => {
           @backup-drive="handleManualBackup"
           @restore-drive="handleDriveRestore"
           @create-sheet="createAnalyticsSheet"
+          @export-local-backup="handleExportLocalBackup"
+          @import-local-backup="handleImportLocalBackup"
         />
 
         <!-- Bottom Navigation Bar -->
