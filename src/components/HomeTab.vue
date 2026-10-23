@@ -7,6 +7,7 @@ import {
   Clock, 
   CheckCircle2, 
   Plus, 
+  Award,
   ChevronRight
 } from '@lucide/vue'
 
