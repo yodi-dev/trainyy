@@ -20,7 +20,8 @@ Belajar yang efektif bukan sekadar membaca ulang (*passive reading*), melainkan 
 ## ✨ Fitur Utama (v1.1)
 
 1. **📱 Mobile-First & Offline-Ready (PWA)**:
-   - Didesain khusus untuk navigasi satu tangan (ramah jempol) dengan 5 tab *bottom navigation*.
+   - Didesain khusus untuk navigasi satu tangan (ramah jempol) dengan 4 tab *bottom navigation* lega (Materi, Beranda di tengah, Trivia, Soal Salah).
+   - Akses cepat Pengaturan & Akun terintegrasi pada tombol profil di sudut kanan atas beranda.
    - Dapat diinstal ke layar utama ponsel (*Add to Home Screen*) tanpa perlu app store.
    - Bekerja penuh saat offline (di pesawat, KRL, atau area minim sinyal) berkat Service Worker dan IndexedDB (Dexie.js).
 2. **💡 Halaman Fakta Kilat (Trivia Flashcard)**:

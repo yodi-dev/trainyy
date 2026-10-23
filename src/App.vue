@@ -502,6 +502,7 @@ onUnmounted(() => {
           :is-restoring="isDriveRestoring"
           :is-connecting="isDriveConnecting"
           :status-message="driveStatusMessage"
+          @navigate="currentTab = $event"
           @connect-google="handleConnectGoogle"
           @disconnect-google="disconnectGoogle"
           @backup-drive="handleManualBackup"

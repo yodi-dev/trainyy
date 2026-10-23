@@ -8,7 +8,9 @@ import {
   CheckCircle2, 
   Plus, 
   Award,
-  ChevronRight
+  ChevronRight,
+  User,
+  Settings
 } from '@lucide/vue'
 
 const props = defineProps({
@@ -116,26 +118,46 @@ const displayedDecks = computed(() => (props.decks || []).slice(0, 3))
           <span>{{ isOnline ? 'Online' : 'Offline' }}</span>
         </div>
 
-        <!-- User Profile Avatar thumbnail (if logged in) -->
+        <!-- Tombol Profil & Pengaturan (Selalu Tampil agar Pengguna Ngeh) -->
         <button
-          v-if="userProfile"
+          type="button"
           @click="emit('navigate', 'settings')"
-          class="cursor-pointer active-press rounded-full p-0.5 border border-theme-border hover:border-theme-primary transition-colors"
-          title="Buka Pengaturan"
+          class="relative flex items-center gap-1.5 py-1 px-2.5 rounded-full bg-app-card border border-theme-border/70 hover:border-theme-primary text-slate-200 hover:text-white transition-all active-press cursor-pointer group shadow-xs shrink-0"
+          title="Buka Pengaturan & Akun"
+          aria-label="Pengaturan dan Akun"
         >
-          <img
-            v-if="userProfile.picture"
-            :src="userProfile.picture"
-            referrerpolicy="no-referrer"
-            alt="Profil"
-            class="w-7 h-7 rounded-full object-cover"
-          />
-          <div
-            v-else
-            class="w-7 h-7 rounded-full bg-theme-primary flex items-center justify-center text-xs font-bold text-white"
-          >
-            {{ userProfile.name?.charAt(0) || 'U' }}
+          <!-- Avatar Container dengan Mini Gear Badge -->
+          <div class="relative shrink-0">
+            <img
+              v-if="userProfile?.picture"
+              :src="userProfile.picture"
+              referrerpolicy="no-referrer"
+              alt="Profil"
+              class="w-6 h-6 rounded-full object-cover ring-1 ring-theme-primary/40"
+            />
+            <div
+              v-else-if="userProfile?.name"
+              class="w-6 h-6 rounded-full bg-theme-primary flex items-center justify-center text-[10px] font-bold text-white"
+            >
+              {{ userProfile.name.charAt(0) }}
+            </div>
+            <div
+              v-else
+              class="w-6 h-6 rounded-full bg-app-surface border border-app-border flex items-center justify-center text-app-muted group-hover:text-theme-light transition-colors"
+            >
+              <User class="w-3.5 h-3.5" />
+            </div>
+
+            <!-- Mini Gear Badge di sudut avatar -->
+            <span class="absolute -bottom-1 -right-1 w-3.5 h-3.5 rounded-full bg-theme-primary text-white flex items-center justify-center shadow-xs border border-app-surface">
+              <Settings class="w-2 h-2 group-hover:rotate-45 transition-transform duration-300" />
+            </span>
           </div>
+
+          <!-- Label Pengaturan -->
+          <span class="text-xs font-medium text-slate-200 group-hover:text-white pr-0.5">
+            Pengaturan
+          </span>
         </button>
       </div>
     </div>

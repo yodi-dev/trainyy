@@ -49,12 +49,12 @@ Belajar bukan sekadar membaca ulang materi secara pasif (*passive reading*), mel
 ### 4. Ruang Lingkup Fitur (Feature Scope v1.0)
 
 #### 4.1. Shell Aplikasi Mobile-First (PWA Shell)
-- **Bottom Navigation Bar (5 Tab):**
-  - 🏠 **Beranda:** Ringkasan statistik, tombol kuis kilat 10 soal, shortcut trivia kilat, dan cuplikan materi belajar.
-  - 💡 **Fakta Kilat (Trivia):** Halaman kartu *active recall* flashcard 3D mandiri, dilengkapi intisari konsep dan filter materi.
+- **Bottom Navigation Bar (4 Tab Ergonomis):**
   - 📚 **Bank Materi (Decks):** Daftar lengkap materi/deck, total soal, dan upload PDF/catatan teks.
+  - 🏠 **Beranda (Tengah):** Ringkasan statistik, tombol kuis kilat 10 soal, dan cuplikan materi belajar.
+  - 💡 **Fakta Kilat (Trivia):** Halaman kartu *active recall* flashcard 3D mandiri, dilengkapi intisari konsep dan filter materi.
   - 🎯 **Ruang Soal Salah (Remedial):** Kumpulan soal yang pernah dijawab salah untuk dilatih ulang sampai tuntas.
-  - ⚙️ **Pengaturan & Akun:** Status Google Drive, cadangan offline JSON, buku rapor Google Sheets, Gemini AI Key, dan preferensi tema.
+- **Header Pengaturan & Akun:** Tombol profil + gear terpadu di pojok kanan atas beranda (selalu tampil) untuk akses cepat ke setelan Google Drive, cadangan JSON, AI Key, dan tema (dilengkapi tombol kembali ke beranda).
 - **Indikator Konektivitas:** Status *Offline/Online badge* yang responsif.
 - **PWA Service Worker:** Auto-cache aset aplikasi untuk akses instan tanpa jaringan.
 

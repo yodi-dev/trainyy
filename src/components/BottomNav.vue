@@ -3,8 +3,7 @@ import {
   Home, 
   Lightbulb,
   BookOpen, 
-  Target, 
-  Settings 
+  Target 
 } from '@lucide/vue'
 
 const props = defineProps({
@@ -21,25 +20,25 @@ const props = defineProps({
 const emit = defineEmits(['update:tab'])
 
 const tabs = [
+  { id: 'decks', label: 'Materi', icon: BookOpen },
   { id: 'home', label: 'Beranda', icon: Home },
   { id: 'trivia', label: 'Trivia', icon: Lightbulb },
-  { id: 'decks', label: 'Materi', icon: BookOpen },
-  { id: 'remedial', label: 'Soal Salah', icon: Target, badge: true },
-  { id: 'settings', label: 'Pengaturan', icon: Settings }
+  { id: 'remedial', label: 'Soal Salah', icon: Target, badge: true }
 ]
 </script>
 
 <template>
   <nav
-    class="fixed bottom-0 left-0 right-0 z-30 bg-app-surface/90 backdrop-blur-md border-t border-app-border safe-bottom px-3 pt-2"
+    class="fixed bottom-0 left-0 right-0 z-30 bg-app-surface/90 backdrop-blur-md border-t border-app-border safe-bottom px-2 pt-2"
     aria-label="Navigasi Utama"
   >
-    <div class="max-w-md mx-auto flex items-center justify-around">
+    <div class="max-w-md mx-auto grid grid-cols-4 items-center">
       <button
         v-for="tab in tabs"
         :key="tab.id"
+        type="button"
         @click="emit('update:tab', tab.id)"
-        class="relative flex flex-col items-center justify-center py-1.5 px-3 rounded-xl transition-all duration-200 active-press"
+        class="relative flex flex-col items-center justify-center py-1.5 px-2 rounded-xl transition-all duration-200 active-press cursor-pointer"
         :class="[
           currentTab === tab.id
             ? 'text-white font-medium'
@@ -68,7 +67,7 @@ const tabs = [
           </span>
         </div>
 
-        <span class="text-[11px] mt-1 tracking-tight">
+        <span class="text-[11px] mt-1 tracking-tight truncate max-w-full text-center">
           {{ tab.label }}
         </span>
       </button>

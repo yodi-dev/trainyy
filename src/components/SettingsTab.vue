@@ -20,7 +20,8 @@ import {
   Loader2,
   HardDrive,
   FileDown,
-  FileUp
+  FileUp,
+  ChevronLeft
 } from '@lucide/vue'
 import { useTheme } from '../composables/useTheme'
 
@@ -64,6 +65,7 @@ const props = defineProps({
 })
 
 const emit = defineEmits([
+  'navigate',
   'connect-google',
   'disconnect-google',
   'backup-drive',
@@ -136,14 +138,25 @@ const updateQuizMode = (mode) => {
 <template>
   <div class="space-y-5 pb-24">
     <!-- Header -->
-    <div class="pt-2">
-      <h1 class="text-xl font-bold text-white flex items-center gap-2">
-        <Settings class="w-5 h-5 text-theme-light" />
-        <span>Pengaturan</span>
-      </h1>
-      <p class="text-xs text-app-muted mt-0.5">
-        Kelola akun, cadangan data, dan tampilan aplikasi
-      </p>
+    <div class="pt-2 flex items-center gap-2.5">
+      <button
+        type="button"
+        @click="emit('navigate', 'home')"
+        class="p-2 -ml-1 rounded-xl bg-app-card border border-app-border hover:border-theme-primary/50 text-app-muted hover:text-white transition-colors cursor-pointer active-press shrink-0 flex items-center justify-center"
+        aria-label="Kembali ke Beranda"
+        title="Kembali ke Beranda"
+      >
+        <ChevronLeft class="w-5 h-5" />
+      </button>
+      <div>
+        <h1 class="text-xl font-bold text-white flex items-center gap-2">
+          <Settings class="w-5 h-5 text-theme-light" />
+          <span>Pengaturan</span>
+        </h1>
+        <p class="text-xs text-app-muted mt-0.5">
+          Kelola akun, cadangan data, dan tampilan aplikasi
+        </p>
+      </div>
     </div>
 
     <!-- Status Message Banner -->
