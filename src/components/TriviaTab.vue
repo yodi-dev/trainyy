@@ -8,8 +8,6 @@ import {
   Check,
   ChevronLeft,
   ChevronRight,
-  BookOpen,
-  Play,
   Plus,
   Filter
 } from '@lucide/vue'
@@ -355,23 +353,6 @@ onMounted(() => {
           <ChevronRight class="w-4 h-4 text-theme-light" />
         </button>
       </div>
-
-      <!-- Quick Action: Quiz Current Deck -->
-      <div v-if="currentDeck" class="pt-2">
-        <div class="p-3.5 rounded-2xl bg-app-card border border-app-border flex items-center justify-between gap-3">
-          <div class="min-w-0">
-            <p class="text-xs font-bold text-white truncate">{{ currentDeck.title }}</p>
-            <p class="text-[11px] text-app-muted truncate mt-0.5">Uji hafalan fakta ini lewat kuis interaktif</p>
-          </div>
-          <button
-            @click="emit('start-deck-quiz', currentDeck)"
-            class="shrink-0 flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-theme-primary hover:bg-theme-hover text-white text-xs font-bold active-press cursor-pointer shadow-xs transition-colors"
-          >
-            <Play class="w-3.5 h-3.5 fill-white" />
-            <span>Mulai Kuis</span>
-          </button>
-        </div>
-      </div>
     </div>
 
     <!-- Empty State for Trivia if 0 questions -->
@@ -401,7 +382,7 @@ onMounted(() => {
     <!-- Footer Credit -->
     <div class="text-center text-[11px] text-app-dim pt-4 pb-2">
       <p>
-        Trainyy v1.1.0 • 
+        Trainyy v1.1.0 &bull; 
         <a 
           href="https://awanbeo.my.id" 
           target="_blank" 
@@ -414,3 +395,4 @@ onMounted(() => {
     </div>
   </div>
 </template>
+

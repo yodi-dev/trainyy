@@ -1,19 +1,13 @@
 <script setup>
-import { ref, computed, onMounted, watch } from 'vue'
+import { computed } from 'vue'
 import { 
   Play, 
   RotateCcw, 
   BookOpen, 
   Clock, 
-  Zap, 
   CheckCircle2, 
   Plus, 
-  Award,
-  ChevronRight,
-  Lightbulb,
-  Sparkles,
-  Shuffle,
-  Check
+  ChevronRight
 } from '@lucide/vue'
 
 const props = defineProps({
@@ -96,13 +90,11 @@ const displayedDecks = computed(() => (props.decks || []).slice(0, 3))
           </svg>
         </div>
 
-        <div>
+        <div class="flex flex-col justify-center">
           <span class="text-base font-black tracking-tight text-white leading-none">Trainyy</span>
-          <div class="mt-1">
-            <span class="inline-block px-1.5 py-0.5 rounded text-[9px] font-bold bg-theme-soft text-theme-light border border-theme-border leading-none">
-              Active Recall
-            </span>
-          </div>
+          <span class="inline-block px-1.5 py-0.5 rounded text-[8.5px] font-bold bg-theme-soft text-theme-light border border-theme-border leading-none w-fit mt-1">
+            Active Recall
+          </span>
         </div>
       </div>
 
@@ -198,35 +190,7 @@ const displayedDecks = computed(() => (props.decks || []).slice(0, 3))
     </div>
 
     <!-- ==============================================
-         SECTION 2: SHORTCUT FAKTA KILAT (TRIVIA)
-         ============================================== -->
-    <button
-      type="button"
-      @click="emit('navigate', 'trivia')"
-      class="w-full p-3.5 rounded-2xl bg-gradient-to-r from-amber-500/10 via-theme-soft to-amber-500/5 border border-amber-500/25 hover:border-amber-500/40 flex items-center justify-between text-left active-press transition-all cursor-pointer group"
-    >
-      <div class="flex items-center gap-3 min-w-0">
-        <div class="w-9 h-9 rounded-xl bg-amber-500/15 border border-amber-500/30 text-amber-400 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
-          <Lightbulb class="w-5 h-5" />
-        </div>
-        <div class="min-w-0">
-          <div class="flex items-center gap-1.5">
-            <span class="text-xs font-bold text-white">Fakta Kilat (Trivia)</span>
-            <span class="px-1.5 py-0.5 rounded text-[9px] font-bold bg-amber-500/20 text-amber-300 border border-amber-500/30">
-              {{ questions.length }} Fakta
-            </span>
-          </div>
-          <p class="text-[11px] text-app-muted truncate mt-0.5">Asah wawasan & intisari konsep dengan kartu flashcard</p>
-        </div>
-      </div>
-      <div class="flex items-center gap-1 text-xs text-amber-300/90 font-semibold shrink-0 ml-2">
-        <span>Buka</span>
-        <ChevronRight class="w-4 h-4 text-app-dim group-hover:text-amber-400 group-hover:translate-x-0.5 transition-all" />
-      </div>
-    </button>
-
-    <!-- ==============================================
-         SECTION 3: PRIMARY ACTION HERO (MULAI KUIS)
+         SECTION 2: PRIMARY ACTION HERO (MULAI KUIS)
          ============================================== -->
     <div class="relative overflow-hidden rounded-2xl bg-theme-gradient p-5 shadow-theme-glow">
       <div class="relative z-10 space-y-4">
@@ -388,7 +352,7 @@ const displayedDecks = computed(() => (props.decks || []).slice(0, 3))
     <!-- Footer Credit -->
     <div class="text-center text-[11px] text-app-dim pt-4 pb-2">
       <p>
-        Trainyy v1.1.0 â€¢ 
+        Trainyy v1.1.0 &bull; 
         <a 
           href="https://awanbeo.my.id" 
           target="_blank" 

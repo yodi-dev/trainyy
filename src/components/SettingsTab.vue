@@ -91,35 +91,37 @@ const onFileSelected = (event) => {
 }
 
 // AI Key State
-const apiKeyInput = ref(
-  localStorage.getItem('trainyy_gemini_api_key') ||
-  import.meta.env.VITE_GEMINI_API_KEY ||
-  ''
-)
+const hasEnvKey = !!import.meta.env.VITE_GEMINI_API_KEY
+const customApiKey = ref(localStorage.getItem('trainyy_gemini_api_key') || '')
+// Hanya muat kunci kustom pengguna ke input agar kunci bawaan sistem tetap aman terlindungi
+const apiKeyInput = ref(customApiKey.value)
 const showKey = ref(false)
 const keySaved = ref(false)
 const showAiGuide = ref(false)
 
-const hasActiveKey = ref(
-  !!(
-    localStorage.getItem('trainyy_gemini_api_key') ||
-    import.meta.env.VITE_GEMINI_API_KEY
-  )
-)
+const hasActiveKey = computed(() => !!customApiKey.value || hasEnvKey)
+const isUsingCustomKey = computed(() => !!customApiKey.value)
+const isUsingSystemKey = computed(() => !customApiKey.value && hasEnvKey)
 
 const saveApiKey = () => {
-  if (apiKeyInput.value.trim()) {
-    localStorage.setItem('trainyy_gemini_api_key', apiKeyInput.value.trim())
-    hasActiveKey.value = true
+  const trimmed = apiKeyInput.value.trim()
+  if (trimmed) {
+    localStorage.setItem('trainyy_gemini_api_key', trimmed)
+    customApiKey.value = trimmed
     keySaved.value = true
     setTimeout(() => {
       keySaved.value = false
       showAiGuide.value = false
     }, 1800)
   } else {
-    localStorage.removeItem('trainyy_gemini_api_key')
-    hasActiveKey.value = false
+    removeCustomKey()
   }
+}
+
+const removeCustomKey = () => {
+  localStorage.removeItem('trainyy_gemini_api_key')
+  customApiKey.value = ''
+  apiKeyInput.value = ''
 }
 
 // Mode Kuis Default
@@ -381,12 +383,14 @@ const updateQuizMode = (mode) => {
         <span
           class="shrink-0 whitespace-nowrap text-[10px] font-bold px-2 py-0.5 rounded-full border leading-none"
           :class="[
-            hasActiveKey
+            isUsingCustomKey
+              ? 'bg-indigo-500/15 text-indigo-300 border-indigo-500/30'
+              : isUsingSystemKey
               ? 'bg-emerald-500/15 text-emerald-400 border-emerald-500/30'
               : 'bg-amber-500/15 text-amber-300 border-amber-500/30'
           ]"
         >
-          {{ hasActiveKey ? 'Siap Digunakan' : 'Perlu Kunci AI' }}
+          {{ isUsingCustomKey ? 'Kunci Kustom Aktif' : isUsingSystemKey ? 'Kunci Bawaan Aktif' : 'Perlu Kunci AI' }}
         </span>
       </div>
 
@@ -411,7 +415,18 @@ const updateQuizMode = (mode) => {
         </button>
 
         <div v-if="showAiGuide" class="pt-3 space-y-3">
-          <div class="p-3 rounded-xl bg-app-bg border border-app-border space-y-2 text-xs">
+          <!-- Info Kunci Bawaan Sistem Aktif -->
+          <div v-if="isUsingSystemKey" class="p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/25 space-y-1 text-xs">
+            <div class="flex items-center gap-1.5 font-bold text-emerald-400">
+              <Check class="w-4 h-4 shrink-0" />
+              <span>Kunci AI Bawaan Aktif & Aman</span>
+            </div>
+            <p class="text-[11px] text-emerald-300/90 leading-relaxed">
+              Aplikasi sudah terhubung dengan kunci AI bawaan sistem. Anda dapat langsung membuat kuis tanpa perlu memasukkan kunci apa pun. Anda hanya perlu mengisi kolom di bawah jika ingin menggunakan kunci Google AI pribadi Anda.
+            </p>
+          </div>
+
+          <div v-else class="p-3 rounded-xl bg-app-bg border border-app-border space-y-2 text-xs">
             <p class="text-app-muted leading-relaxed">
               Kunci AI bisa didapatkan gratis dari Google untuk membuat soal tanpa batasan:
             </p>
@@ -437,7 +452,7 @@ const updateQuizMode = (mode) => {
               <input
                 v-model="apiKeyInput"
                 :type="showKey ? 'text' : 'password'"
-                placeholder="Tempelkan kunci AI Google di sini..."
+                :placeholder="isUsingSystemKey ? 'Kunci sistem aktif (opsional: tempel kunci kustom)' : 'Tempelkan kunci AI Google di sini...'"
                 class="w-full pl-3 pr-9 py-2 rounded-lg bg-app-card border border-app-border text-white text-xs font-mono placeholder-app-dim focus:outline-hidden focus:border-theme-primary"
               />
               <button
@@ -452,18 +467,28 @@ const updateQuizMode = (mode) => {
 
             <div class="flex items-center justify-between pt-1">
               <span class="text-[10px] text-app-dim">
-                Tersimpan aman di browser perangkat Anda
+                {{ isUsingCustomKey ? 'Kunci kustom tersimpan di browser' : 'Tersimpan aman di perangkat Anda' }}
               </span>
-              <button
-                @click="saveApiKey"
-                class="px-3.5 py-1.5 rounded-lg bg-theme-primary hover:bg-theme-hover text-white font-bold text-xs active-press cursor-pointer"
-              >
-                <span v-if="keySaved" class="flex items-center gap-1">
-                  <Check class="w-3.5 h-3.5" />
-                  <span>Tersimpan</span>
-                </span>
-                <span v-else>Simpan Kunci</span>
-              </button>
+              <div class="flex items-center gap-2">
+                <button
+                  v-if="isUsingCustomKey"
+                  type="button"
+                  @click="removeCustomKey"
+                  class="px-2.5 py-1 rounded-lg text-app-dim hover:text-rose-400 text-xs active-press cursor-pointer transition-colors"
+                >
+                  Hapus
+                </button>
+                <button
+                  @click="saveApiKey"
+                  class="px-3.5 py-1.5 rounded-lg bg-theme-primary hover:bg-theme-hover text-white font-bold text-xs active-press cursor-pointer"
+                >
+                  <span v-if="keySaved" class="flex items-center gap-1">
+                    <Check class="w-3.5 h-3.5" />
+                    <span>Tersimpan</span>
+                  </span>
+                  <span v-else>Simpan Kunci</span>
+                </button>
+              </div>
             </div>
           </div>
         </div>
@@ -541,7 +566,7 @@ const updateQuizMode = (mode) => {
     <!-- App Info & Version -->
     <div class="text-center space-y-1.5 text-app-dim text-xs pt-2">
       <p class="font-bold text-app-muted">
-        Trainyy v1.1.0 • 
+        Trainyy v1.1.0 &bull; 
         <a 
           href="https://awanbeo.my.id" 
           target="_blank" 
