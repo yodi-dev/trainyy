@@ -3,6 +3,7 @@ import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { db } from './db'
 import { useGoogleDrive } from './composables/useGoogleDrive'
 import { useTheme } from './composables/useTheme'
+import { synthesizeTrivia } from './utils/triviaHelper'
 
 // Components
 import BottomNav from './components/BottomNav.vue'
@@ -60,6 +61,18 @@ const loadLocalData = async () => {
     decks.value = await db.decks.toArray()
     questions.value = await db.questions.toArray()
     sessions.value = await db.sessions.toArray()
+
+    // Background sync: lengkapi fakta trivia untuk soal-soal materi lama yang belum memilikinya
+    const missingTrivia = questions.value.filter((q) => !q.trivia)
+    if (missingTrivia.length > 0) {
+      for (const q of missingTrivia) {
+        const syn = synthesizeTrivia(q)
+        if (syn?.fact) {
+          await db.questions.update(q.id, { trivia: syn.fact })
+        }
+      }
+      questions.value = await db.questions.toArray()
+    }
   } catch (err) {
     console.error('Error loading local data:', err)
   }
