@@ -11,6 +11,7 @@ import DecksTab from './components/DecksTab.vue'
 import RemedialTab from './components/RemedialTab.vue'
 import SettingsTab from './components/SettingsTab.vue'
 import QuizRunner from './components/QuizRunner.vue'
+import StoryStudioModal from './components/StoryStudioModal.vue'
 
 // Composables
 useTheme() // Inisialisasi tema
@@ -37,6 +38,7 @@ const {
 const currentTab = ref('home')
 const activeQuiz = ref(null) // null or { questions, deckTitle, deckId, mode }
 const drivePdfs = ref([])
+const isStoryStudioOpen = ref(false)
 
 // Database State
 const decks = ref([])
@@ -369,6 +371,7 @@ onUnmounted(() => {
           @start-quick-quiz="startQuickQuiz"
           @start-deck-quiz="startDeckQuiz"
           @open-new-deck-modal="currentTab = 'decks'"
+          @open-story-studio="isStoryStudioOpen = true"
           @navigate="currentTab = $event"
         />
 
@@ -404,6 +407,7 @@ onUnmounted(() => {
           @backup-drive="handleManualBackup"
           @restore-drive="handleDriveRestore"
           @create-sheet="createAnalyticsSheet"
+          @open-story-studio="isStoryStudioOpen = true"
         />
 
         <!-- Bottom Navigation Bar -->
@@ -414,6 +418,12 @@ onUnmounted(() => {
         />
       </template>
     </main>
+
+    <!-- Trainyy Story Studio Modal (9:16 Auto-Video Generator) -->
+    <StoryStudioModal
+      :is-open="isStoryStudioOpen"
+      @close="isStoryStudioOpen = false"
+    />
   </div>
 </template>
 

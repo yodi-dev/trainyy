@@ -17,7 +17,9 @@ import {
   EyeOff,
   LogOut,
   ChevronDown,
-  Loader2
+  Loader2,
+  Clapperboard,
+  Video
 } from '@lucide/vue'
 import { useTheme } from '../composables/useTheme'
 
@@ -53,7 +55,8 @@ const emit = defineEmits([
   'disconnect-google',
   'backup-drive',
   'restore-drive',
-  'create-sheet'
+  'create-sheet',
+  'open-story-studio'
 ])
 
 const { themes, currentTheme, applyTheme } = useTheme()
@@ -464,6 +467,41 @@ const updateQuizMode = (mode) => {
           <span class="text-xs font-bold text-white leading-tight">{{ t.name }}</span>
         </button>
       </div>
+    </div>
+
+    <!-- ==============================================
+         SECTION 6: TRAINYY STORY STUDIO (AUTO VIDEO)
+         ============================================== -->
+    <div class="relative overflow-hidden rounded-2xl bg-gradient-to-br from-indigo-950/70 via-purple-950/50 to-slate-900 border border-pink-500/30 p-4 space-y-3 shadow-lg">
+      <div class="flex items-center justify-between gap-2">
+        <div class="flex items-center gap-2.5 min-w-0">
+          <div class="w-8 h-8 rounded-xl bg-pink-500/20 text-pink-400 border border-pink-500/30 flex items-center justify-center shrink-0">
+            <Clapperboard class="w-4 h-4" />
+          </div>
+          <div class="min-w-0">
+            <div class="flex items-center gap-1.5">
+              <h2 class="text-sm font-bold text-white truncate">Trainyy Story Studio</h2>
+              <span class="px-1.5 py-0.5 rounded text-[9px] font-bold bg-pink-500/20 text-pink-300 border border-pink-500/30 leading-none shrink-0">
+                Instagram 9:16
+              </span>
+            </div>
+            <p class="text-[10px] text-app-muted truncate">Generator Video Demo & Narasi Otomatis</p>
+          </div>
+        </div>
+      </div>
+
+      <p class="text-xs text-app-text/90 leading-relaxed">
+        Buat dan rekam video demo vertikal 9:16 lengkap dengan animasi kartu trivia 3D, simulasi kuis, narasi suara, dan musik BGM untuk di-upload ke Instagram Story kamu.
+      </p>
+
+      <button
+        type="button"
+        @click="emit('open-story-studio')"
+        class="w-full py-2.5 px-4 rounded-xl bg-gradient-to-r from-pink-600 via-indigo-600 to-purple-600 hover:opacity-95 text-white font-bold text-xs flex items-center justify-center gap-2 active-press cursor-pointer shadow-md"
+      >
+        <Video class="w-4 h-4" />
+        <span>Buka Story Studio & Rekam Video</span>
+      </button>
     </div>
 
     <!-- App Info & Version -->

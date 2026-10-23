@@ -13,7 +13,8 @@ import {
   Lightbulb,
   Sparkles,
   Shuffle,
-  Check
+  Check,
+  Clapperboard
 } from '@lucide/vue'
 
 const props = defineProps({
@@ -47,6 +48,7 @@ const emit = defineEmits([
   'start-quick-quiz',
   'start-deck-quiz',
   'open-new-deck-modal',
+  'open-story-studio',
   'navigate'
 ])
 
@@ -258,6 +260,16 @@ watch(
           ></span>
           <span>{{ isOnline ? 'Online' : 'Offline' }}</span>
         </div>
+
+        <!-- Trainyy Story Studio Shortcut -->
+        <button
+          type="button"
+          @click="emit('open-story-studio')"
+          class="cursor-pointer active-press rounded-full p-1 border border-pink-500/30 bg-pink-500/10 text-pink-300 hover:bg-pink-500/20 transition-colors flex items-center justify-center w-7 h-7"
+          title="Buka Story Studio (Video IG Story 9:16)"
+        >
+          <Clapperboard class="w-3.5 h-3.5" />
+        </button>
 
         <!-- User Profile Avatar thumbnail (if logged in) -->
         <button
